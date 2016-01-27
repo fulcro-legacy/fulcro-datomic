@@ -4,7 +4,7 @@
     [com.stuartsierra.component :as component]
     [untangled.datomic.protocols :as udb]
     [untangled.datomic.core :refer [build-database]]
-    [untangled.server.impl.components.logger :refer [start-logging! reset-logging!]]))
+    [taoensso.timbre :as t]))
 
 (defn db-fixture
   "Create a test fixture version (in-memory database) of a database. Such a
@@ -18,7 +18,7 @@
         uri "datomic:mem://db-fixture"
         db  (build-database db-key)]
     (d/delete-database uri)
-    (start-logging! nil nil log-level)
+    (t/set-level! log-level)
     (component/start (assoc db :config {:value {:datomic {:dbs {db-key
                                                                 (cond-> {:url uri :auto-drop true}
                                                                   migration-ns (assoc :auto-migrate true :schema migration-ns)
@@ -35,7 +35,7 @@
   `(let [~varname (db-fixture :mockdb :migration-ns ~migrations :seed-fn ~seed-fn :log-level ~log-level)]
      (try ~form (finally
                   (component/stop ~varname)
-                  (reset-logging!))))
+                  (t/set-level! :debug))))
   )
 
 

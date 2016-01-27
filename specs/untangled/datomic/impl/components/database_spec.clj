@@ -1,8 +1,6 @@
 (ns untangled.datomic.impl.components.database-spec
   (:require [com.stuartsierra.component :as component]
-            [untangled.server.impl.components.config :as cfg]
             [clojure.test :refer :all]
-            [untangled.server.core :refer [new-config]]
             [untangled.datomic.core :refer [build-database]]
             [untangled-spec.core :refer [specification
                                          assertions
@@ -38,12 +36,11 @@
 (defn start-system
   ([] (start-system default-config))
   ([cfg]
-   (with-redefs [cfg/load-config (fn [_] cfg)]
-     (-> (component/system-map
-           :config (new-config {})
-           :logger {}
-           :db (build-database default-db-name))
-       .start))))
+   (-> (component/system-map
+         :config {:value cfg}
+         :logger {}
+         :db (build-database default-db-name))
+     .start)))
 
 (specification "DatabaseComponent"
 

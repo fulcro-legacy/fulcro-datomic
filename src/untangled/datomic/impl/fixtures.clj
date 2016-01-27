@@ -2,7 +2,7 @@
   (:require
     [datomic.api :as d]
     [com.stuartsierra.component :as component]
-    [untangled.server.protocols :as udb]
+    [untangled.datomic.protocols :as udb]
     [untangled.datomic.core :refer [build-database]]
     [untangled.server.impl.components.logger :refer [start-logging! reset-logging!]]))
 

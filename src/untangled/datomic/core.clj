@@ -1,7 +1,7 @@
 (ns untangled.datomic.core
   (:require [datomic.api :as d]
             [com.stuartsierra.component :as component]
-            [untangled.datomic.impl.components.database :as database]
+            [untangled.datomic.impl.components :as comp]
             ))
 
 (defn retract-datomic-entity [connection entity-id] @(d/transact connection [[:db.fn/retractEntity entity-id]]))
@@ -25,6 +25,7 @@
         arg))
     m))
 
+;; TODO: move this out
 (defn query-pull
   "Given a datomic-pull query and connection `conn`, returns the query response from all entities
    containing `db-attr` as an attribute. If `ref-set` is provided, query-pull will pull each entity-id
@@ -54,14 +55,18 @@
         tid %)
       x)))
 
+(defn make-seeder [seed-data]
+  (component/using
+    (comp/map->Seeder {:seed-data seed-data})
+    (vec (keys seed-data))))
 
 (defn build-database
   "Build a database component. If you specify a config, then none will be injected. If you do not, then this component
   will expect there to be a `:config` component to inject."
   ([database-key config]
-   (database/map->DatabaseComponent {:db-name database-key
+   (comp/map->DatabaseComponent {:db-name database-key
                                      :config  {:value {:datomic config}}}))
   ([database-key]
    (component/using
-     (database/map->DatabaseComponent {:db-name database-key})
+     (comp/map->DatabaseComponent {:db-name database-key})
      [:config :logger])))

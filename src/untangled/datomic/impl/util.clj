@@ -2,6 +2,7 @@
   (:require
     [clojure.tools.namespace.find :refer [find-namespaces]]
     [clojure.java.classpath :refer [classpath]]))
+
 (defn namespace-name [n]
   (str n))
 

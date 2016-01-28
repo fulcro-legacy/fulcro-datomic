@@ -1,8 +1,9 @@
-(defproject navis/untangled-datomic "0.4.0-SNAPSHOT"
+(defproject navis/untangled-datomic "0.4.1-SNAPSHOT"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [datomic-helpers "1.0.0"]
-                 [com.datomic/datomic-pro "0.9.5206" :exclusions [joda-time]]
+                 [com.datomic/datomic-free "0.9.5344" :exclusions [joda-time]]
+                 [org.clojure/math.combinatorics "0.1.1"]
                  [com.stuartsierra/component "0.2.3"]
                  [org.clojure/tools.namespace "0.2.10"]
                  [org.clojure/java.classpath "0.2.2"]

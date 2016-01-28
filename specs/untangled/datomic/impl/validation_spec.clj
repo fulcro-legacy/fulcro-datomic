@@ -5,8 +5,7 @@
     [untangled-spec.core :refer [specification assertions when-mocking component behavior]]
     [datomic.api :as d]
     [seeddata.auth :as a]
-    [untangled.datomic.impl.seed :as s]
-    [untangled.datomic.impl.fixtures :refer [with-db-fixture]]
+    [untangled.datomic.test-helpers :as test-helpers :refer [with-db-fixture]]
     [resources.datomic-schema.validation-schema.initial]
     )
   (:import (clojure.lang ExceptionInfo)
@@ -19,13 +18,13 @@
   (let [entities (concat
                    (a/create-base-user-and-realm)
                    [[:db/add :tempid/user1 :user/realm :tempid/realm1] [:db/add :tempid/user2 :user/realm :tempid/realm1]]
-                   [(s/generate-entity {:db/id            :tempid/prop-entitlement
+                   [(test-helpers/generate-entity {:db/id :tempid/prop-entitlement
                                         :entitlement/kind :entitlement.kind/property
                                         })
-                    (s/generate-entity {:db/id            :tempid/comp-entitlement
+                    (test-helpers/generate-entity {:db/id :tempid/comp-entitlement
                                         :entitlement/kind :entitlement.kind/component
                                         })])]
-    (s/link-and-load-seed-data conn entities)))
+    (test-helpers/link-and-load-seed-data conn entities)))
 
 (specification "as-set"
   (behavior "converts scalars to singular sets"

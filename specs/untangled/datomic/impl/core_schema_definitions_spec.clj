@@ -3,8 +3,7 @@
     [untangled.datomic.impl.validation :as v]
     [datomic.api :as d]
     [seeddata.auth :as a]
-    [untangled.datomic.impl.seed :as s]
-    [untangled.datomic.impl.fixtures :refer [with-db-fixture]]
+    [untangled.datomic.test-helpers :as test-helpers :refer [with-db-fixture]]
     [resources.datomic-schema.validation-schema.initial]
     [untangled-spec.core :refer [specification
                                  assertions
@@ -23,7 +22,7 @@
 
 (defn- seed-validation [conn]
   (let [entities (a/create-base-user-and-realm)]
-    (s/link-and-load-seed-data conn entities)))
+    (test-helpers/link-and-load-seed-data conn entities)))
 
 (def ^:private always
   (constantly true?))

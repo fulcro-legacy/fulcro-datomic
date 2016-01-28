@@ -2,7 +2,7 @@
   (:require
     [untangled.datomic.impl.fetch :as rest]
     [seeddata.auth :as a]
-    [untangled.datomic.impl.fixtures :refer [with-db-fixture]]
+    [untangled.datomic.test-helpers :refer [with-db-fixture]]
     [resources.datomic-schema.rest-schema.initial]
     [untangled-spec.core :refer [specification
                                  assertions

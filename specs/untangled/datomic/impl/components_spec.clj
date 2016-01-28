@@ -96,8 +96,3 @@
       (assertions
         (-> (start-system) .stop :db :connection) => nil))))
 
-(specification "helper functions"
-  (assertions
-    "datomic-id->tempid"
-    (comp/datomic-id->tempid [{:id :datomic.id/asdf :foo :om.id/asdf} {:datomic.id/asdf :id}])
-    => [{:id :tempid/asdf :foo :om.id/asdf} {:tempid/asdf :id}]))

@@ -3,12 +3,10 @@
             [datomic-toolbox.core :as dt]
             [datomic.api :as datomic]
             [untangled.datomic.impl.migration :as m]
-            [untangled.datomic.impl.seed :as seed]
             [taoensso.timbre :refer [info fatal]]
             [untangled.datomic.impl.core-schema-definitions :as sc]
             [untangled.datomic.protocols :refer [Database]]
-            [clojure.math.combinatorics :as combo]
-            [clojure.walk :as walk])
+            )
   ;(:import (untangled.datomic.protocols Database))
   )
 
@@ -77,48 +75,3 @@
         (info "Deleting database" db-name url)
         (datomic/delete-database url)))
     (assoc this :connection nil)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; helpers for Seeder component
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- set-namespace [kw new-ns]
-  (keyword new-ns (name kw)))
-
-(defn- namespace-match-generator [nspace]
-  (fn [x]
-    (and (keyword? x) (= nspace (namespace x)))))
-
-(def datomic-id?
-  (namespace-match-generator "datomic.id"))
-
-(defn datomic-id->tempid [stuff]
-  (walk/postwalk #(if (datomic-id? %)
-                   (set-namespace % "tempid") %)
-    stuff))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defrecord Seeder [seed-data seed-result]
-  component/Lifecycle
-  (start [this]
-    (let [dbs-to-seed (keys seed-data)
-          tid-maps (reduce (fn [acc db-name]
-                             (let [sd (datomic-id->tempid (get seed-data db-name))
-                                   db (get this db-name)
-                                   conn (.get-connection db)
-                                   tempid-map (seed/link-and-load-seed-data conn sd)]
-                               (conj acc tempid-map)))
-                     [] dbs-to-seed)
-          pairwise-disjoint? (fn [maps]
-                               (if (< (count maps) 2)
-                                 true
-                                 (let [all-keys (map (comp set keys) maps)
-                                       pairs (combo/combinations all-keys 2)
-                                       empty-pair? (fn [[ks1 ks2]]
-                                                     (empty? (clojure.set/intersection ks1 ks2)))]
-                                   (every? empty-pair? pairs))))]
-      (assoc this :seed-result (and (pairwise-disjoint? tid-maps) (apply merge tid-maps)))))
-  (stop [this]
-    ;; You can't stop the seeder!
-    this))

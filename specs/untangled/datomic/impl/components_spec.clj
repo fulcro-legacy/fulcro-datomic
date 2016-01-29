@@ -1,4 +1,4 @@
-(ns untangled.datomic.impl.components.database-spec
+(ns untangled.datomic.impl.components-spec
   (:require [com.stuartsierra.component :as component]
             [clojure.test :refer :all]
             [untangled.datomic.core :refer [build-database]]
@@ -7,7 +7,8 @@
                                          when-mocking
                                          component
                                          behavior]]
-            [untangled.datomic.impl.components.database :as db]
+            [untangled.datomic.schema :as schema]
+            [untangled.datomic.impl.components :as comp]
             [datomic-toolbox.core :as dt]))
 
 (def default-db-name :db1)
@@ -65,8 +66,8 @@
       (dt/run-migrations _) => true
       (datomic.api/create-database default-db-url) => true
       (datomic.api/connect default-db-url) => true
-      (db/run-core-schema anything) => true
-      (db/run-migrations anything anything anything) => true
+      (schema/run-core-schema anything) => true
+      (comp/run-migrations anything anything anything) => true
       (assertions
         (if (start-system migrate-all-config) true) => true)))
 
@@ -76,8 +77,8 @@
       (dt/run-migrations _) => true
       (datomic.api/create-database default-db-url) => true
       (datomic.api/connect default-db-url) => true
-      (db/run-core-schema anything) => true
-      (db/run-migrations anything anything anything) => true
+      (schema/run-core-schema anything) => true
+      (comp/run-migrations anything anything anything) => true
       (assertions
         (if (start-system migrate-specfic-config) true) => true)))
 
@@ -95,3 +96,4 @@
       (datomic.api/delete-database anything) => true
       (assertions
         (-> (start-system) .stop :db :connection) => nil))))
+

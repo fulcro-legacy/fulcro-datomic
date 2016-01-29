@@ -1,7 +1,7 @@
 ;; Name YOUR namespace as follows: datahub.migrations.YYYYMMDDHHmm-description
 ;; This means your filename will be: src/datahub/migrations/YYYYMMDDHHmm_description (note the underscore)
 (ns sample-migrations.migrations.template
-  (:require [untangled.datomic.impl.schema :as s])
+  (:require [untangled.datomic.schema :as s])
   )
 
 ;; THIS FILE WILL NEVER RUN. The migration system ignores anything in *.template namespaces.

@@ -1,8 +1,49 @@
-(ns untangled.datomic.impl.seed
+(ns untangled.datomic.test-helpers
   (:require
     [datomic.api :as d]
-    [taoensso.timbre :as timbre]
+    [com.stuartsierra.component :as component]
+    [untangled.datomic.core :refer [build-database]]
+    [taoensso.timbre :as t]
+    [clojure.walk :as walk]
+    [clojure.math.combinatorics :as combo]
     [clojure.walk :as walk]))
+
+
+
+(defn db-fixture
+  "Create a test fixture version (in-memory database) of a database. Such a
+  database will be auto-migrated to the current version of the schema in the
+  given (optional) namespace, and the
+  given seed-fn will be run as part of the database startup (see the database
+  component in datahub for details on seeding).
+  "
+  [db-key & {:keys [migration-ns seed-fn log-level]}]
+  (let [
+        uri "datomic:mem://db-fixture"
+        db  (build-database db-key)]
+    (d/delete-database uri)
+    (t/set-level! log-level)
+    (component/start (assoc db :config {:value {:datomic {:dbs {db-key
+                                                                (cond-> {:url uri :auto-drop true}
+                                                                  migration-ns (assoc :auto-migrate true :schema migration-ns)
+                                                                  seed-fn (assoc :seed-function seed-fn))}}}}))))
+
+(defmacro with-db-fixture
+  "
+  Set up the specified database, seed it using seed-fn (see Database component),
+  make it available as varname, run the given form, then clean up the database.
+
+  Returns the result of the form.
+  "
+  [varname form & {:keys [migrations seed-fn log-level] :or {log-level :fatal}}]
+  `(let [~varname (db-fixture :mockdb :migration-ns ~migrations :seed-fn ~seed-fn :log-level ~log-level)]
+     (try ~form (finally
+                  (component/stop ~varname)
+                  (t/set-level! :debug))))
+  )
+
+
+
 
 (defmacro generate-entity
   "Generate a ready-to-link datomic object. The object data can take the form
@@ -114,3 +155,53 @@
         result @(d/transact conn linked-data)
         realid-map (:tempids result)]
     (reduce (fn [a k] (assoc a k (d/resolve-tempid (d/db conn) realid-map (k a)))) assigned-tempids (keys assigned-tempids))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; helpers for Seeder component
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- set-namespace [kw new-ns]
+  (keyword new-ns (name kw)))
+
+(defn- namespace-match-generator [nspace]
+  (fn [x]
+    (and (keyword? x) (= nspace (namespace x)))))
+
+(def datomic-id?
+  (namespace-match-generator "datomic.id"))
+
+(defn datomic-id->tempid [stuff]
+  (walk/postwalk #(if (datomic-id? %)
+                   (set-namespace % "tempid") %)
+    stuff))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defrecord Seeder [seed-data seed-result]
+  component/Lifecycle
+  (start [this]
+    (let [dbs-to-seed (keys seed-data)
+          tid-maps (reduce (fn [acc db-name]
+                             (let [sd (datomic-id->tempid (get seed-data db-name))
+                                   db (get this db-name)
+                                   conn (.get-connection db)
+                                   tempid-map (link-and-load-seed-data conn sd)]
+                               (conj acc tempid-map)))
+                     [] dbs-to-seed)
+          pairwise-disjoint? (fn [maps]
+                               (if (< (count maps) 2)
+                                 true
+                                 (let [all-keys (map (comp set keys) maps)
+                                       pairs (combo/combinations all-keys 2)
+                                       empty-pair? (fn [[ks1 ks2]]
+                                                     (empty? (clojure.set/intersection ks1 ks2)))]
+                                   (every? empty-pair? pairs))))]
+      (assoc this :seed-result (and (pairwise-disjoint? tid-maps) (apply merge tid-maps)))))
+  (stop [this]
+    ;; You can't stop the seeder!
+    this))
+
+(defn make-seeder [seed-data]
+  (component/using
+    (map->Seeder {:seed-data seed-data})
+    (vec (keys seed-data))))

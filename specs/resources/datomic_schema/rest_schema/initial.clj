@@ -1,36 +1,34 @@
 (ns resources.datomic-schema.rest-schema.initial
-  (:require [untangled.datomic.impl.schema :as s]
-            [datomic.api :as d]
-            [untangled.datomic.impl.migration :as m])
-  )
+  (:require [untangled.datomic.schema :as schema]
+            [datomic.api :as d]))
 
 (defn transactions []
   [
-   (s/generate-schema
+   (schema/generate-schema
             [
-             (s/schema realm
-                       (s/fields
+             (schema/schema realm
+                       (schema/fields
                          [realm-id :string :unique-identity :definitive "realm-id-doc"]
                          [realm-name :string "realm-name-doc"]
                          [user :ref :many {:references :user/user-id} "realm-user-doc"]
                          [subscription :ref :many :component {:references :subscription/name} "realm-subscription-doc"]
                          )
                        )
-             (s/schema subscription
-                       (s/fields
+             (schema/schema subscription
+                       (schema/fields
                          [name :string :unique-identity :definitive]
                          [component :ref :one :component {:references :component/name}]
                          )
                        )
 
-             (s/schema component
-                       (s/fields
+             (schema/schema component
+                       (schema/fields
                          [name :string :unique-identity :definitive]
                          )
                        )
 
-             (s/schema user
-                       (s/fields
+             (schema/schema user
+                       (schema/fields
                          [user-id :uuid :unique-identity :definitive]
                          [realm :ref :one {:references :realm/realm-id}]
                          [email :string :unique-value]
@@ -38,9 +36,9 @@
                          )
                        )
              ])
-     (m/entity-extensions :user "user entity doc" [])
-     (m/entity-extensions :realm "realm entity doc" [])
-     (m/entity-extensions :subscription "subscription entity doc" [])
-     (m/entity-extensions :component "component entity doc" [:realm/realm-id :realm/realm-name])
+     (schema/entity-extensions :user "user entity doc" [])
+     (schema/entity-extensions :realm "realm entity doc" [])
+     (schema/entity-extensions :subscription "subscription entity doc" [])
+     (schema/entity-extensions :component "component entity doc" [:realm/realm-id :realm/realm-name])
    ]
   )

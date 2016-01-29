@@ -1,16 +1,16 @@
 (ns resources.datomic-schema.validation-schema.initial
   (:require
-    [untangled.datomic.impl.schema :as s]
-    [untangled.datomic.impl.migration :as m]
+    datomic.api
+    [untangled.datomic.schema :as schema]
     )
   )
 
 (defn transactions []
   (concat
     [
-     (s/generate-schema
+     (schema/generate-schema
        [
-        (s/dbfn constrained-delete [db eid] :db.part/user
+        (schema/dbfn constrained-delete [db eid] :db.part/user
                 (let [attrs (keys (datomic.api/entity db eid))
                       references-to-attr (fn [db attr eid]
                                            (datomic.api/q '[:find [?e2 ...]
@@ -24,8 +24,8 @@
                   (if (empty? refs) [[:db.fn/retractEntity eid]] (throw (Exception. "CONSTRAINTED")))
                   )
                 )
-        (s/schema realm
-                  (s/fields
+        (schema/schema realm
+                  (schema/fields
                     [account-id :string :unique-identity :definitive]
                     [account-name :string]
                     [user :ref :many {:references :user/email}]
@@ -35,8 +35,8 @@
                     )
                   )
 
-        (s/schema subscription
-                  (s/fields
+        (schema/schema subscription
+                  (schema/fields
                     [name :string :unique-identity]
                     [application :ref :one { :references :application/name }]
                     [component :ref :one { :references :component/name }]
@@ -44,8 +44,8 @@
                     )
                   )
 
-        (s/schema user
-                 (s/fields
+        (schema/schema user
+                 (schema/fields
                     [user-id :uuid :unique-identity :definitive]
                     [realm :ref :one { :references :realm/account-id }]
                     [email :string :unique-value]
@@ -63,8 +63,8 @@
                     )
                   )
 
-        (s/schema component
-                  (s/fields
+        (schema/schema component
+                  (schema/fields
                     [name :string]
                     ;; description of what this component does
                     [read-functionality :string]
@@ -72,22 +72,22 @@
                     )
                   )
 
-        (s/schema application
-                  (s/fields
+        (schema/schema application
+                  (schema/fields
                     [name :string :unique-identity]
                     [component :ref :many :component]
                     )
                   )
 
-        (s/schema property-group ;; owned by realm
-                  (s/fields
+        (schema/schema property-group ;; owned by realm
+                  (schema/fields
                     [name :string ]
                     [property :uuid :many ] ;; to property
                     )
                   )
 
-        (s/schema entitlement
-                  (s/fields
+        (schema/schema entitlement
+                  (schema/fields
                     ;; The kind of entitlement.
                     [kind :enum [:all-properties :all-components :property :property-group
                                  :component :application] ]
@@ -108,14 +108,14 @@
                     )
                   )
 
-        (s/schema authorization-role  ;; pre-defined set of entitlements under a (convenient) app-specific role name
-                  (s/fields
+        (schema/schema authorization-role  ;; pre-defined set of entitlements under a (convenient) app-specific role name
+                  (schema/fields
                     [application :ref :one]
                     [name :string]
                     [entitlement :ref :many :component]
                     )
                   )
         ])
-     (m/entity-extensions :user "A User" #{:authorization-role/name})
+     (schema/entity-extensions :user "A User" #{:authorization-role/name})
      ]
     ))

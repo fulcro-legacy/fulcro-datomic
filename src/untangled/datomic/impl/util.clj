@@ -2,6 +2,7 @@
   (:require
     [clojure.tools.namespace.find :refer [find-namespaces]]
     [clojure.java.classpath :refer [classpath]]))
+
 (defn namespace-name [n]
   (str n))
 
@@ -26,3 +27,7 @@
     (doseq [n namespaces]
       (require n :reload))
     namespaces))
+
+(defn single-arg [args]
+  (let [argslist (filter #(if (second %) true false) args)]
+    (if (= (count argslist) 1) argslist nil)))

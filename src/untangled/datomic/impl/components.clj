@@ -1,21 +1,16 @@
-(ns untangled.datomic.impl.components.database
+(ns untangled.datomic.impl.components
   (:require [com.stuartsierra.component :as component]
+            [datomic-toolbox.core :as dt]
             [datomic.api :as datomic]
             [taoensso.timbre :refer [info fatal]]
-            [untangled.datomic.impl.migration :as m]
-            [untangled.datomic.impl.core-schema-definitions :as sc]
-            [datomic-toolbox.core :as dt]
+            [untangled.datomic.schema :as schema]
             [untangled.datomic.protocols :refer [Database]]))
 
-(defn run-core-schema [conn]
-  (info "Applying core schema to database.")
-  (doseq []
-    (sc/ensure-constraints-conform conn)
-    (sc/ensure-entities-conform conn)))
+
 
 (defn- run-migrations [migration-ns kw conn]
   (info "Applying migrations " migration-ns "to" kw "database.")
-  (m/migrate conn migration-ns))
+  (schema/migrate conn migration-ns))
 
 (defn load-datomic-toolbox-helpers [db-url]
   (dt/configure! {:uri db-url :partition :db.part/user})
@@ -54,7 +49,7 @@
           c (datomic/connect url)]
       (when migrate-on-start
         (info "Ensuring core schema is defined")
-        (run-core-schema c)
+        (schema/run-core-schema c)
         (info "Running migrations on" db-name)
         (load-datomic-toolbox-helpers url)
         (run-migrations migration-ns db-name c))
@@ -72,6 +67,3 @@
         (info "Deleting database" db-name url)
         (datomic/delete-database url)))
     (assoc this :connection nil)))
-
-
-

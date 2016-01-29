@@ -1,6 +1,5 @@
 (ns sample-migrations.migrations.auth.users-20150609
-  (:require [untangled.datomic.impl.schema :as s]
-            [untangled.datomic.impl.migration :as m]
+  (:require [untangled.datomic.schema :as s]
             [datomic.api :as d])
   )
 
@@ -113,17 +112,17 @@
       ]
      {:index-all? true}
      )
-   (m/entity-extensions :user "User represents and indidual who accesses the navis system and the associated software and property entitlements and authorization roles." [])
-   (m/entity-extensions :realm "Realm represents a navis clients and the associated users, properties, property groups, subscriptions and authorization roles." [])
-   (m/entity-extensions :subscription "Subscripton represents which application and application components that are allowed for a realm" [])
-   (m/entity-extensions :component "Component represents a logically grouped set of applicaiton functions that can be exposed to applications and subscriptions" [])
-   (m/entity-extensions :application "Application represents an overall navis application that contains 1 or more components" [])
-   (m/entity-extensions :property-group "Property Group represents a logical group of properties for a navis client that contain 1 or more properties" [])
-   (m/entity-extensions :entitlement "An abstract representation of entitlement" [])
-   (m/entity-extensions :software-entitlement "Entitlement represents an individual permision to a component, all components or application.
+   (s/entity-extensions :user "User represents and indidual who accesses the navis system and the associated software and property entitlements and authorization roles." [])
+   (s/entity-extensions :realm "Realm represents a navis clients and the associated users, properties, property groups, subscriptions and authorization roles." [])
+   (s/entity-extensions :subscription "Subscripton represents which application and application components that are allowed for a realm" [])
+   (s/entity-extensions :component "Component represents a logically grouped set of applicaiton functions that can be exposed to applications and subscriptions" [])
+   (s/entity-extensions :application "Application represents an overall navis application that contains 1 or more components" [])
+   (s/entity-extensions :property-group "Property Group represents a logical group of properties for a navis client that contain 1 or more properties" [])
+   (s/entity-extensions :entitlement "An abstract representation of entitlement" [])
+   (s/entity-extensions :software-entitlement "Entitlement represents an individual permision to a component, all components or application.
                                 Permissions of read/write and links to specific a specific property, application or coponent when required." [:entitlement/permission])
-   (m/entity-extensions :property-entitlement "Entitlement represents an individual permision to a property, all properties, property-group, component, all components or application.
+   (s/entity-extensions :property-entitlement "Entitlement represents an individual permision to a property, all properties, property-group, component, all components or application.
                                 Permissions of read/write and links to specific a specific property, application or coponent when required." [:entitlement/permission])
-   (m/entity-extensions :authorization-role "Authorization Role is a logical grouping application specific roles with specified entitlements." [])
+   (s/entity-extensions :authorization-role "Authorization Role is a logical grouping application specific roles with specified entitlements." [])
    ]
   )

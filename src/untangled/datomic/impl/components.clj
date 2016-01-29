@@ -2,9 +2,8 @@
   (:require [com.stuartsierra.component :as component]
             [datomic-toolbox.core :as dt]
             [datomic.api :as datomic]
-            [untangled.datomic.impl.migration :as m]
             [taoensso.timbre :refer [info fatal]]
-            [untangled.datomic.impl.core-schema-definitions :as sc]
+            [untangled.datomic.schema :as schema]
             [untangled.datomic.protocols :refer [Database]]
             )
   ;(:import (untangled.datomic.protocols Database))
@@ -13,12 +12,12 @@
 (defn run-core-schema [conn]
   (info "Applying core schema to database.")
   (doseq []
-    (sc/ensure-constraints-conform conn)
-    (sc/ensure-entities-conform conn)))
+    (schema/ensure-constraints-conform conn)
+    (schema/ensure-entities-conform conn)))
 
 (defn- run-migrations [migration-ns kw conn]
   (info "Applying migrations " migration-ns "to" kw "database.")
-  (m/migrate conn migration-ns))
+  (schema/migrate conn migration-ns))
 
 (defn load-datomic-toolbox-helpers [db-url]
   (dt/configure! {:uri db-url :partition :db.part/user})

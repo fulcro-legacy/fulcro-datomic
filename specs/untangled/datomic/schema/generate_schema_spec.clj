@@ -1,12 +1,16 @@
-(ns untangled.datomic.impl.schema-spec
+(ns untangled.datomic.schema.generate-schema-spec
   (:require
-    [untangled.datomic.impl.schema :as s]
-    [untangled-spec.core :refer [specification behavior assertions]]))
+    [untangled.datomic.schema :as schema]
+    [untangled-spec.core :refer [specification assertions when-mocking component behavior]]
+    [untangled.datomic.test-helpers :refer [with-db-fixture]]
+    [resources.datomic-schema.validation-schema.initial]
+    [resources.datomic-schema.rest-schema.initial]
+    [clojure.test :refer [is]]))
 
 (specification "Generate Schema generates"
-  (let [schema (s/generate-schema
-                 [(s/schema component
-                    (s/fields
+  (let [schema (schema/generate-schema
+                 [(schema/schema component
+                    (schema/fields
                       [name :string "my doc" :definitive :unique-identity]
                       [application :ref :one {:references :application/name}]
                       [password :string :unpublished]))])]

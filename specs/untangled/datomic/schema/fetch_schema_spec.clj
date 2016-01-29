@@ -1,15 +1,10 @@
-(ns untangled.datomic.impl.fetch-spec
+(ns untangled.datomic.schema.fetch-schema-spec
   (:require
-    [untangled.datomic.impl.fetch :as rest]
+    resources.datomic-schema.rest-schema.initial
+    [untangled.datomic.schema :as schema]
+    [untangled-spec.core :refer [specification assertions when-mocking component behavior]]
     [seeddata.auth :as a]
-    [untangled.datomic.test-helpers :refer [with-db-fixture]]
-    [resources.datomic-schema.rest-schema.initial]
-    [untangled-spec.core :refer [specification
-                                 assertions
-                                 when-mocking
-                                 component
-                                 behavior]]
-    [clojure.test :refer :all]))
+    [untangled.datomic.test-helpers :refer [with-db-fixture]]))
 
 (defn- seed-rest [conn]
   (a/create-base-user-and-realm))
@@ -21,7 +16,7 @@
 
     (let [c (:connection dbcomp)
           id-map (-> dbcomp :seed-result)
-          schema-representations (rest/fetch-schema c)]
+          schema-representations (schema/fetch-schema c)]
 
       (behavior
         ;; TODO: ^:integration

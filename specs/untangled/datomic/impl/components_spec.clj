@@ -7,6 +7,7 @@
                                          when-mocking
                                          component
                                          behavior]]
+            [untangled.datomic.schema :as schema]
             [untangled.datomic.impl.components :as comp]
             [datomic-toolbox.core :as dt]))
 
@@ -65,7 +66,7 @@
       (dt/run-migrations _) => true
       (datomic.api/create-database default-db-url) => true
       (datomic.api/connect default-db-url) => true
-      (comp/run-core-schema anything) => true
+      (schema/run-core-schema anything) => true
       (comp/run-migrations anything anything anything) => true
       (assertions
         (if (start-system migrate-all-config) true) => true)))
@@ -76,7 +77,7 @@
       (dt/run-migrations _) => true
       (datomic.api/create-database default-db-url) => true
       (datomic.api/connect default-db-url) => true
-      (comp/run-core-schema anything) => true
+      (schema/run-core-schema anything) => true
       (comp/run-migrations anything anything anything) => true
       (assertions
         (if (start-system migrate-specfic-config) true) => true)))

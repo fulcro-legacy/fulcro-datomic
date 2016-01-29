@@ -4,16 +4,9 @@
             [datomic.api :as datomic]
             [taoensso.timbre :refer [info fatal]]
             [untangled.datomic.schema :as schema]
-            [untangled.datomic.protocols :refer [Database]]
-            )
-  ;(:import (untangled.datomic.protocols Database))
-  )
+            [untangled.datomic.protocols :refer [Database]]))
 
-(defn run-core-schema [conn]
-  (info "Applying core schema to database.")
-  (doseq []
-    (schema/ensure-constraints-conform conn)
-    (schema/ensure-entities-conform conn)))
+
 
 (defn- run-migrations [migration-ns kw conn]
   (info "Applying migrations " migration-ns "to" kw "database.")
@@ -56,7 +49,7 @@
           c (datomic/connect url)]
       (when migrate-on-start
         (info "Ensuring core schema is defined")
-        (run-core-schema c)
+        (schema/run-core-schema c)
         (info "Running migrations on" db-name)
         (load-datomic-toolbox-helpers url)
         (run-migrations migration-ns db-name c))

@@ -6,6 +6,7 @@
                  [org.clojure/math.combinatorics "0.1.1"]
                  [com.stuartsierra/component "0.2.3"]
                  [org.clojure/tools.namespace "0.2.10"]
+                 [org.clojure/tools.cli "0.3.3"]
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
                  [untangled-spec "0.3.1" :scope "test" :exclusions [io.aviso/pretty]]

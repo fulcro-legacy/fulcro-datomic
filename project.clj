@@ -1,4 +1,4 @@
-(defproject navis/untangled-datomic "0.4.1-SNAPSHOT"
+(defproject navis/untangled-datomic "0.4.1"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [datomic-helpers "1.0.0"]

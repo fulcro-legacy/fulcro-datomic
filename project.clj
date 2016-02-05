@@ -14,14 +14,12 @@
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
 
 
-  :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/internal-release"]
-                 ["third-party" "https://artifacts.buehner-fry.com/artifactory/internal-3rdparty"]
-                 ["snapshots" "https://artifacts.buehner-fry.com/artifactory/internal-snapshots"]]
+  :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
 
-  :deploy-repositories [["releases" {:url           "https://artifacts.buehner-fry.com/artifactory/internal-release"
+  :deploy-repositories [["releases" {:url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-release"
                                      :snapshots     false
                                      :sign-releases false}]
-                        ["snapshots" {:url           "https://artifacts.buehner-fry.com/artifactory/internal-snapshots"
+                        ["snapshots" {:url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-snapshot"
                                       :sign-releases false}]]
 
   :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report

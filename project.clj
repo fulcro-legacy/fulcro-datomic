@@ -13,6 +13,7 @@
                  [com.taoensso/timbre "4.2.1"]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
 
+  :plugins [[com.jakemccrary/lein-test-refresh "0.13.0"]]
 
   :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
 

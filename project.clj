@@ -1,4 +1,4 @@
-(defproject navis/untangled-datomic "0.4.1"
+(defproject navis/untangled-datomic "0.4.2-SNAPSHOT"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [datomic-helpers "1.0.0"]
@@ -9,7 +9,7 @@
                  [org.clojure/tools.cli "0.3.3"]
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
-                 [untangled-spec "0.3.1" :scope "test" :exclusions [io.aviso/pretty]]
+                 [untangled-spec "0.3.3" :scope "test" :exclusions [io.aviso/pretty]]
                  [com.taoensso/timbre "4.2.1"]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
 

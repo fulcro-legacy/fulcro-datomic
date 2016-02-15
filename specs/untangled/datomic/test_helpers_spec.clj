@@ -125,3 +125,16 @@
     "datomic-id->tempid"
     (test-helpers/datomic-id->tempid [{:id :datomic.id/asdf :foo :om.id/asdf} {:datomic.id/asdf :id}])
     => [{:id :tempid/asdf :foo :om.id/asdf} {:tempid/asdf :id}]))
+
+(specification "setting up a db fixture"
+  (behavior "does NOT change the outside context's timbre's log level"
+    (let [old-log-level (:level taoensso.timbre/*config*)
+          mock-seed-fn (fn [conn] (test-helpers/link-and-load-seed-data conn []))]
+      (test-helpers/with-db-fixture
+        db (assertions
+             (:level taoensso.timbre/*config*) => :info)
+        :seed-fn mock-seed-fn
+        :migrations "resources.datomic-schema.validation-schema"
+        :log-level :info)
+      (assertions
+        (:level taoensso.timbre/*config*) => old-log-level))))

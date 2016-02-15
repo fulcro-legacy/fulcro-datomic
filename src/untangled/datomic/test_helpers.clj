@@ -17,16 +17,14 @@
   given seed-fn will be run as part of the database startup (see the database
   component in datahub for details on seeding).
   "
-  [db-key & {:keys [migration-ns seed-fn log-level]}]
-  (let [
-        uri "datomic:mem://db-fixture"
-        db  (build-database db-key)]
+  [db-key & {:keys [migration-ns seed-fn]}]
+  (let [uri "datomic:mem://db-fixture"
+        db  (build-database db-key)
+        db-config (cond-> {:url uri :auto-drop true}
+                    migration-ns (assoc :auto-migrate true :schema migration-ns)
+                    seed-fn (assoc :seed-function seed-fn))]
     (d/delete-database uri)
-    (t/set-level! log-level)
-    (component/start (assoc db :config {:value {:datomic {:dbs {db-key
-                                                                (cond-> {:url uri :auto-drop true}
-                                                                  migration-ns (assoc :auto-migrate true :schema migration-ns)
-                                                                  seed-fn (assoc :seed-function seed-fn))}}}}))))
+    (component/start (assoc db :config {:value {:datomic {:dbs {db-key db-config}}}}))))
 
 (defmacro with-db-fixture
   "
@@ -36,11 +34,9 @@
   Returns the result of the form.
   "
   [varname form & {:keys [migrations seed-fn log-level] :or {log-level :fatal}}]
-  `(let [~varname (db-fixture :mockdb :migration-ns ~migrations :seed-fn ~seed-fn :log-level ~log-level)]
-     (try ~form (finally
-                  (component/stop ~varname)
-                  (t/set-level! :debug))))
-  )
+  `(t/with-level ~log-level
+     (let [~varname (db-fixture :mockdb :migration-ns ~migrations :seed-fn ~seed-fn)]
+       (try ~form (finally (component/stop ~varname))))))
 
 
 

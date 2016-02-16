@@ -17,10 +17,12 @@
 
   :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
 
-  :deploy-repositories [["releases" {:url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-release"
+  :deploy-repositories [["releases" {:id "central"
+                                     :url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-release"
                                      :snapshots     false
                                      :sign-releases false}]
-                        ["snapshots" {:url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-snapshot"
+                        ["snapshots" {:id "snapshots"
+                                      :url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-snapshot"
                                       :sign-releases false}]]
 
   :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report

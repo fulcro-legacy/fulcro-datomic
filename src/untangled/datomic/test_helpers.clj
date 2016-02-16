@@ -19,12 +19,12 @@
   "
   [db-key & {:keys [migration-ns seed-fn]}]
   (let [uri "datomic:mem://db-fixture"
-        db  (build-database db-key)
-        db-config (cond-> {:url uri :auto-drop true}
-                    migration-ns (assoc :auto-migrate true :schema migration-ns)
-                    seed-fn (assoc :seed-function seed-fn))]
+        db-key-config (cond-> {:url uri :auto-drop true}
+                        migration-ns (assoc :auto-migrate true :schema migration-ns)
+                        seed-fn (assoc :seed-function seed-fn))
+        db (build-database db-key {:dbs {db-key db-key-config}})]
     (d/delete-database uri)
-    (component/start (assoc db :config {:value {:datomic {:dbs {db-key db-config}}}}))))
+    (component/start db)))
 
 (defmacro with-db-fixture
   "

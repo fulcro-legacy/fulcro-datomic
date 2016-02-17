@@ -57,36 +57,36 @@
 (defn create-base-user-and-realm
   "Creates a vector containing two users and an realm. Their temporary IDs are:
 
-  :tempid/realm1
-  :tempid/user1
-  :tempid/user2
-  :tempid/user3
+  :datomic.id/realm1
+  :datomic.id/user1
+  :datomic.id/user2
+  :datomic.id/user3
 
   You can conjoin this data with your own, and then call seed/link-entities to
   resolve these fake temporary IDs to real ones before transacting them into the
   database.
   "
   []
-  (let [user1 (gen-user :tempid/user1 (d/squuid) "letmein" "user1@example.net" true "abc")
-        user2 (gen-user :tempid/user2 (d/squuid) "letmein" "user2@example.net" true "abc")
-        user3 (gen-user :tempid/user3 (d/squuid) "letmein" "user3@example.net" true "abc")
-        realm (gen-realm :tempid/realm1 "realm1" "Realm" [:tempid/user1 :tempid/user2])]
+  (let [user1 (gen-user :datomic.id/user1 (d/squuid) "letmein" "user1@example.net" true "abc")
+        user2 (gen-user :datomic.id/user2 (d/squuid) "letmein" "user2@example.net" true "abc")
+        user3 (gen-user :datomic.id/user3 (d/squuid) "letmein" "user3@example.net" true "abc")
+        realm (gen-realm :datomic.id/realm1 "realm1" "Realm" [:datomic.id/user1 :datomic.id/user2])]
     [user1 user2 user3 realm]))
 
 (defn create-oauth-base-user-and-realm
   "Creates a vector containing two users and an realm. Their temporary IDs are:
 
-  :tempid/realm1
-  :tempid/user1
-  :tempid/user2
+  :datomic.id/realm1
+  :datomic.id/user1
+  :datomic.id/user2
 
   You can conjoin this data with your own, and then call seed/link-entities to
   resolve these fake temporary IDs to real ones before transacting them into the
   database.
   "
   []
-  (let [user1 (gen-user :tempid/user1 (UUID/fromString "5584ada2-5e61-41de-bd99-cdef32a83f15") "letmein" "user1@example.net" true "abc")
-        user2 (gen-user :tempid/user2 (UUID/fromString "5584ada2-5e61-41de-bd99-cdef32a83f16") "letmein" "user2@example.net" true "abc")
-        realm (gen-realm :tempid/realm1 "realm1" "realm" [:tempid/user1 :tempid/user2])]
+  (let [user1 (gen-user :datomic.id/user1 (UUID/fromString "5584ada2-5e61-41de-bd99-cdef32a83f15") "letmein" "user1@example.net" true "abc")
+        user2 (gen-user :datomic.id/user2 (UUID/fromString "5584ada2-5e61-41de-bd99-cdef32a83f16") "letmein" "user2@example.net" true "abc")
+        realm (gen-realm :datomic.id/realm1 "realm1" "realm" [:datomic.id/user1 :datomic.id/user2])]
     [user1 user2 realm]))
 

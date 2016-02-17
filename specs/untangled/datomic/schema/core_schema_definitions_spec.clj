@@ -36,9 +36,9 @@
     (let [c (:connection dbcomp)
           db (datomic/db c)
           id-map (-> dbcomp :seed-result)
-          realm-id (:tempid/realm1 id-map)
-          user1id (:tempid/user1 id-map)
-          user2id (:tempid/user2 id-map)]
+          realm-id (:datomic.id/realm1 id-map)
+          user1id (:datomic.id/user1 id-map)
+          user2id (:datomic.id/user2 id-map)]
 
       (behavior
         ;; TODO: ^:integration
@@ -82,9 +82,9 @@
     (let [c (:connection dbcomp)
           db (datomic/db c)
           id-map (-> dbcomp :seed-result)
-          realm-id (:tempid/realm1 id-map)
-          user1id (:tempid/user1 id-map)
-          user2id (:tempid/user2 id-map)]
+          realm-id (:datomic.id/realm1 id-map)
+          user1id (:datomic.id/user1 id-map)
+          user2id (:datomic.id/user2 id-map)]
 
       (behavior "calls validate-transaction WITHOUT attribute check"
         (let [tx-data [:db/add user1id :user/email "updated@email.net"]]

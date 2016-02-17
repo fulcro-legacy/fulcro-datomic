@@ -45,20 +45,20 @@
   "Generate a ready-to-link datomic object. The object data can take the form
 
        {
-         :db/id :tempid/myid
+         :db/id :datomic.id/myid
          :attr  value
          :refattr  tempid | realid
        }
 
   Any scalar values will be used literally. Any database ID can be either a real
-  datomic entity ID, or a :tempid/name placeholder. Using the same :tempid/name
+  datomic entity ID, or a :datomic.id/name placeholder. Using the same :datomic.id/name
   placeholder in multiple entities within a transaction will result in the exact
   same tempid when joined into a real transaction.
 
   As with normal entity maps in datomic, you may put values for many fields as
   a set, including tempids:
 
-       { :db/id :tempid/myid
+       { :db/id :datomic.id/myid
          :attr  value
          :refattrs #{ tempid realid realid tempid }
        }
@@ -69,12 +69,12 @@
   (let [f *file*]
     (with-meta obj (assoc (meta &form) :file f))))
 
-(defn is-tempid-keyword? [v] (and (keyword? v) (some-> v namespace (.startsWith "tempid"))))
+(defn is-tempid-keyword? [v] (and (keyword? v) (some-> v namespace (.startsWith "datomic.id"))))
 
 (defn assign-temp-id
   "Scans item (which may be a map of attributes or a datomic :db/add list) for
-  an ID field with a keyword namespaced within tempid (e.g.
-  :tempid.boo/myid) as a value. If found, it requests a new temporary ID from
+  an ID field with a keyword namespaced within datomic.id (e.g.
+  :datomic.id) as a value. If found, it requests a new temporary ID from
   datomic and remembers the association in the returned map.
 
   If the item is a map and the id-map already contains a mapping for the item,
@@ -88,7 +88,7 @@
   [id-map item]
   (cond
     (map? item) (let [new-id-mappings (atom id-map)]
-                  (walk/prewalk #(if-let [id (and (map? %) (keyword? (:db/id %)) (.startsWith (namespace (:db/id %)) "tempid") (:db/id %))]
+                  (walk/prewalk #(if-let [id (and (map? %) (keyword? (:db/id %)) (is-tempid-keyword? (:db/id %)) (:db/id %))]
                                   (let [tempid (d/tempid :db.part/user)]
                                     (assert (not (contains? @new-id-mappings id)) (str "Entity uses a duplicate ID: " (meta item)))
                                     (swap! new-id-mappings assoc id tempid)
@@ -97,7 +97,7 @@
                   @new-id-mappings)
     (sequential? item)
     (let [id (nth item 1)]
-      (if (and (.startsWith (namespace id) "tempid") (not (contains? id-map id)))
+      (if (and (is-tempid-keyword? id) (not (contains? id-map id)))
         (assoc id-map id (d/tempid :db.part/user))
         id-map))
     :otherwise (assert false "Invalid entry in data to link. Must be list or map")))
@@ -138,7 +138,7 @@
 
 (defn link-and-load-seed-data
   "Links the given data (by temp IDs), and loads it into the database. This
-  function returns a map from user-generated :tempid/... IDs to the read IDs
+  function returns a map from user-generated :datomic.id/... IDs to the read IDs
   that were used by the database.
 
   The datoms may be in map or list form (a list of lists, or a list of maps),
@@ -153,24 +153,7 @@
     (reduce (fn [a k] (assoc a k (d/resolve-tempid (d/db conn) realid-map (k a)))) assigned-tempids (keys assigned-tempids))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; helpers for Seeder component
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defn- set-namespace [kw new-ns]
-  (keyword new-ns (name kw)))
-
-(defn- namespace-match-generator [nspace]
-  (fn [x]
-    (and (keyword? x) (= nspace (namespace x)))))
-
-(def datomic-id?
-  (namespace-match-generator "datomic.id"))
-
-(defn datomic-id->tempid [stuff]
-  (walk/postwalk #(if (datomic-id? %)
-                   (set-namespace % "tempid") %)
-    stuff))
-
+;; Seeder
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defrecord Seeder [seed-data seed-result]
@@ -178,7 +161,7 @@
   (start [this]
     (let [dbs-to-seed (keys seed-data)
           tid-maps (reduce (fn [acc db-name]
-                             (let [sd (datomic-id->tempid (get seed-data db-name))
+                             (let [sd (get seed-data db-name)
                                    db (get this db-name)
                                    conn (.get-connection db)
                                    tempid-map (link-and-load-seed-data conn sd)]
@@ -192,7 +175,8 @@
                                        empty-pair? (fn [[ks1 ks2]]
                                                      (empty? (clojure.set/intersection ks1 ks2)))]
                                    (every? empty-pair? pairs))))]
-      (assoc this :seed-result (and (pairwise-disjoint? tid-maps) (apply merge tid-maps)))))
+      (assoc this :seed-result (if-not (pairwise-disjoint? tid-maps) :disjoint
+                                 (apply merge tid-maps)))))
   (stop [this]
     ;; You can't stop the seeder!
     this))

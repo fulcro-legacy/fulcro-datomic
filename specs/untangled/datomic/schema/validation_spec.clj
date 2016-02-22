@@ -16,11 +16,11 @@
 (defn- seed-validation [conn]
   (let [entities (concat
                    (a/create-base-user-and-realm)
-                   [[:db/add :tempid/user1 :user/realm :tempid/realm1] [:db/add :tempid/user2 :user/realm :tempid/realm1]]
-                   [(test-helpers/generate-entity {:db/id            :tempid/prop-entitlement
+                   [[:db/add :datomic.id/user1 :user/realm :datomic.id/realm1] [:db/add :datomic.id/user2 :user/realm :datomic.id/realm1]]
+                   [(test-helpers/generate-entity {:db/id            :datomic.id/prop-entitlement
                                                    :entitlement/kind :entitlement.kind/property
                                                    })
-                    (test-helpers/generate-entity {:db/id            :tempid/comp-entitlement
+                    (test-helpers/generate-entity {:db/id            :datomic.id/comp-entitlement
                                                    :entitlement/kind :entitlement.kind/component
                                                    })])]
     (test-helpers/link-and-load-seed-data conn entities)))
@@ -47,11 +47,11 @@
     (let [c (:connection dbcomp)
           db (datomic/db c)
           id-map (-> dbcomp :seed-result)
-          realm-id (:tempid/realm1 id-map)
-          user1id (:tempid/user1 id-map)
-          user2id (:tempid/user2 id-map)
-          compe-id (:tempid/comp-entitlement id-map)
-          prope-id (:tempid/prop-entitlement id-map)]
+          realm-id (:datomic.id/realm1 id-map)
+          user1id (:datomic.id/user1 id-map)
+          user2id (:datomic.id/user2 id-map)
+          compe-id (:datomic.id/comp-entitlement id-map)
+          prope-id (:datomic.id/prop-entitlement id-map)]
       (behavior "foreign-attributes can find the allowed foreign attributes for an entity type"
         (assertions
           (schema/foreign-attributes db :user) => #{:authorization-role/name}) ; see schema in initial.clj )
@@ -96,11 +96,11 @@
     (let [c (:connection dbcomp)
           db (datomic/db c)
           id-map (-> dbcomp :seed-result)
-          realm-id (:tempid/realm1 id-map)
-          user1id (:tempid/user1 id-map)
-          user2id (:tempid/user2 id-map)
-          compe-id (:tempid/comp-entitlement id-map)
-          prope-id (:tempid/prop-entitlement id-map)]
+          realm-id (:datomic.id/realm1 id-map)
+          user1id (:datomic.id/user1 id-map)
+          user2id (:datomic.id/user2 id-map)
+          compe-id (:datomic.id/comp-entitlement id-map)
+          prope-id (:datomic.id/prop-entitlement id-map)]
       (component "reference-constraint-for-attribute"
         (behavior "returns nil for non-constrained attributes"
           (assertions
@@ -306,7 +306,7 @@
     (let [c (:connection dbcomp)
           db (datomic/db c)
           id-map (-> dbcomp :seed-result)
-          user1id (:tempid/user1 id-map)
+          user1id (:datomic.id/user1 id-map)
           bad-attr-tx [[:db/add user1id :subscription/name "data"]]]
 
       (behavior "succeeds against a real database"

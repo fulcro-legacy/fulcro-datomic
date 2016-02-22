@@ -1,4 +1,4 @@
-(defproject navis/untangled-datomic "0.4.1"
+(defproject navis/untangled-datomic "0.4.2"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [datomic-helpers "1.0.0"]
@@ -9,19 +9,20 @@
                  [org.clojure/tools.cli "0.3.3"]
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
-                 [untangled-spec "0.3.1" :scope "test" :exclusions [io.aviso/pretty]]
+                 [untangled-spec "0.3.3" :scope "test" :exclusions [io.aviso/pretty]]
                  [com.taoensso/timbre "4.2.1"]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
 
+  :plugins [[com.jakemccrary/lein-test-refresh "0.13.0"]]
 
-  :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/internal-release"]
-                 ["third-party" "https://artifacts.buehner-fry.com/artifactory/internal-3rdparty"]
-                 ["snapshots" "https://artifacts.buehner-fry.com/artifactory/internal-snapshots"]]
+  :repositories [["releases" "https://artifacts.buehner-fry.com/artifactory/release"]]
 
-  :deploy-repositories [["releases" {:url           "https://artifacts.buehner-fry.com/artifactory/internal-release"
+  :deploy-repositories [["releases" {:id "central"
+                                     :url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-release"
                                      :snapshots     false
                                      :sign-releases false}]
-                        ["snapshots" {:url           "https://artifacts.buehner-fry.com/artifactory/internal-snapshots"
+                        ["snapshots" {:id "snapshots"
+                                      :url           "https://artifacts.buehner-fry.com/artifactory/navis-maven-snapshot"
                                       :sign-releases false}]]
 
   :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report

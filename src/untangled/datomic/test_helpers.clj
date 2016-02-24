@@ -165,8 +165,8 @@
                                    db (get this db-name)
                                    conn (.get-connection db)
                                    tempid-map (link-and-load-seed-data conn sd)]
-                               (conj acc tempid-map)))
-                     [] dbs-to-seed)
+                               (assoc acc db-name tempid-map)))
+                           {} dbs-to-seed)
           pairwise-disjoint? (fn [maps]
                                (if (< (count maps) 2)
                                  true
@@ -175,8 +175,9 @@
                                        empty-pair? (fn [[ks1 ks2]]
                                                      (empty? (clojure.set/intersection ks1 ks2)))]
                                    (every? empty-pair? pairs))))]
-      (assoc this :seed-result (if-not (pairwise-disjoint? tid-maps) :disjoint
-                                 (apply merge tid-maps)))))
+      (assoc this :seed-result (if-not (pairwise-disjoint? (vals tid-maps))
+                                 :disjoint
+                                 tid-maps))))
   (stop [this]
     ;; You can't stop the seeder!
     this))

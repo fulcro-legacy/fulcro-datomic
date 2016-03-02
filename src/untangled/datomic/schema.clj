@@ -941,3 +941,36 @@
       )
     )
   )
+
+;; TODO: Add documentation on usage.
+(defdbfn refcas [db eid rel old-value new-value] :db.part/user
+  (let [entity (datomic.api/entity db eid)
+        relation (datomic.api/entity db rel)
+        ->set (fn [maybe-set]
+                (cond
+                  (instance? java.util.Collection maybe-set) (set maybe-set)
+                  (nil? maybe-set) #{}
+                  :else #{maybe-set}))
+        old-values (->set old-value)
+        new-values (->set new-value)
+        existing-values (set (map :db/id (->set (get entity rel))))]
+    (when-not (= old-values existing-values)
+      (throw (java.util.ConcurrentModificationException.
+               (str "old-values do not match existing values: "
+                 "Info: "
+                 "expected: " (pr-str old-values) "; "
+                 "actual: " (pr-str existing-values) "; "
+                 "coll? " (instance? java.util.Collection old-value) "; "
+                 "nil? " (nil? old-value) "; "
+                 "type: " (type old-value)))))
+    (concat
+      (for [val existing-values
+            :when (not (contains? new-values val))]
+        ; FIXME: Why is this necessary?
+        (if (:db/isComponent relation)
+          [:db.fn/retractEntity val]
+          [:db/retract eid rel val]))
+      (for [val new-values
+            :when (not (contains? old-values val))]
+        {:db/id eid
+         rel    val}))))

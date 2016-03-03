@@ -9,8 +9,8 @@
                  [org.clojure/tools.cli "0.3.3"]
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
+                 [com.taoensso/timbre "4.3.1"]
                  [navis/untangled-spec "0.3.4" :scope "test" :exclusions [io.aviso/pretty]]
-                 [com.taoensso/timbre "4.2.1"]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
 
   :plugins [[com.jakemccrary/lein-test-refresh "0.13.0"]]

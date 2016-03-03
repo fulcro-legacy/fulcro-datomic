@@ -44,7 +44,7 @@
   ([database-key]
    (component/using
      (comp/map->DatabaseComponent {:db-name database-key})
-     [:config :logger])))
+     [:config])))
 
 (defn main-handler [config args]
   (let [[opts args banner]

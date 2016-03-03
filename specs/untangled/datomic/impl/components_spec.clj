@@ -39,7 +39,6 @@
   ([cfg]
    (-> (component/system-map
          :config {:value cfg}
-         :logger {}
          :db (build-database default-db-name))
      .start)))
 

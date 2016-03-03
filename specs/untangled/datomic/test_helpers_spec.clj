@@ -1,6 +1,7 @@
 (ns untangled.datomic.test-helpers-spec
   (:require
     [datomic.api :as d]
+    [com.stuartsierra.component :as component]
     [untangled.datomic.test-helpers :as test-helpers]
     [untangled-spec.core :refer [specification
                                  assertions
@@ -132,3 +133,37 @@
         :log-level :info)
       (assertions
         (:level taoensso.timbre/*config*) => old-log-level))))
+
+(specification "the seeder component"
+  (behavior "if the seed-data's tx-data's have overlapping tempids it should return :disjoint"
+    (test-helpers/with-db-fixture
+      db (test-helpers/with-db-fixture
+           db2 (let [seeder (test-helpers/make-seeder {:db  [{:db/id :datomic.id/thing}]
+                                                       :db2 [{:db/id :datomic.id/thing}]})
+                     system (component/system-map
+                              :db db
+                              :db2 db2
+                              :seeder seeder)
+                     started-system (.start system)]
+                 (assertions
+                   (get-in started-system [:seeder :seed-result])
+                   => :disjoint))
+           :migrations "resources.datomic-schema.validation-schema")
+      :migrations "resources.datomic-schema.validation-schema"))
+
+  (behavior "otherwise it should return {:db-name {:tid :rid}}"
+    (test-helpers/with-db-fixture
+      db (test-helpers/with-db-fixture
+           db2 (let [seeder (test-helpers/make-seeder {:db  [{:db/id :datomic.id/thing}]
+                                                       :db2 [{:db/id :datomic.id/thing2}]})
+                     system (component/system-map
+                              :db db
+                              :db2 db2
+                              :seeder seeder)
+                     started-system (.start system)]
+                 (assertions
+                   (get-in started-system [:seeder :seed-result])
+                   => {:db {:datomic.id/thing nil}
+                       :db2 {:datomic.id/thing2 nil}}))
+           :migrations "resources.datomic-schema.validation-schema")
+      :migrations "resources.datomic-schema.validation-schema")))

@@ -1,3 +1,0 @@
-lein jar
-lein pom
-lein localrepo install -p pom.xml target/untangled-datomic-0.4.2-SNAPSHOT.jar navis/untangled-datomic 0.4.2-SNAPSHOT

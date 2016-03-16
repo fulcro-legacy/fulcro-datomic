@@ -15,7 +15,8 @@
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
                  [com.taoensso/timbre "4.3.1"]
                  [navis/untangled-spec "0.3.5" :scope "test" :exclusions [io.aviso/pretty]]
-                 [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]]
+                 [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]
+                 [datomic-schema-grapher "0.0.1"]]
 
   :plugins [[com.jakemccrary/lein-test-refresh "0.13.0"]]
 

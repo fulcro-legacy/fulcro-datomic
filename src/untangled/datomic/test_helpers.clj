@@ -18,7 +18,7 @@
   component in datahub for details on seeding).
   "
   [db-key & {:keys [migration-ns seed-fn]}]
-  (let [uri "datomic:mem://db-fixture"
+  (let [uri (str "datomic:mem://db-fixture-" (name db-key))
         db-key-config (cond-> {:url uri :auto-drop true}
                         migration-ns (assoc :auto-migrate true :schema migration-ns)
                         seed-fn (assoc :seed-function seed-fn))
@@ -33,11 +33,10 @@
 
   Returns the result of the form.
   "
-  [varname form & {:keys [migrations seed-fn log-level] :or {log-level :fatal}}]
+  [varname form & {:keys [migrations seed-fn log-level db-key] :or {log-level :fatal db-key :mockdb}}]
   `(t/with-level ~log-level
-     (let [~varname (db-fixture :mockdb :migration-ns ~migrations :seed-fn ~seed-fn)]
+     (let [~varname (db-fixture ~db-key :migration-ns ~migrations :seed-fn ~seed-fn)]
        (try ~form (finally (component/stop ~varname))))))
-
 
 
 

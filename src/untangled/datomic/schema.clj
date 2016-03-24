@@ -198,6 +198,7 @@
                   ; eliminate empty items
                   (filter seq)))]
       (into {} [mig]))))
+(def memoized-all-migrations (memoize all-migrations))
 
 (defn migrate
   "
@@ -214,7 +215,7 @@
   (migrate conn \"datahub.migrations\")
   "
   [dbconnection nspace]
-  (let [migrations (all-migrations nspace)]
+  (let [migrations (memoized-all-migrations nspace)]
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm (keys migration)]

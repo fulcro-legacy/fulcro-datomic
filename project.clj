@@ -18,9 +18,10 @@
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]
                  [datomic-schema-grapher "0.0.1"]]
 
-  :plugins [[com.jakemccrary/lein-test-refresh "0.13.0"]]
+  :plugins [[com.jakemccrary/lein-test-refresh "0.14.0"]]
 
   :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report
+                 :with-repl    true
                  :changes-only true}
 
   :source-paths ["src"]

@@ -9,10 +9,10 @@
     [clojure.test :refer [is]]
     [io.rkn.conformity :as c]))
 
-(specification "all-migrations"
+(specification "all-migrations*"
   (behavior "INTEGRATION - finds migrations that are in the correct package and ignores the template"
     (assertions
-      (schema/all-migrations "untangled.datomic.fixtures.migrations")
+      (schema/all-migrations* "untangled.datomic.fixtures.migrations")
       => '({:untangled.datomic.fixtures.migrations/A {:txes [[{:item 1}]]}}
            {:untangled.datomic.fixtures.migrations/B {:txes [[{:item 2}]]}})))
 
@@ -23,7 +23,7 @@
         (util/load-namespaces "my.crap") => ['mig1 'mig2]
 
         (assertions
-          (schema/all-migrations "my.crap") => '()))))
+          (schema/all-migrations* "my.crap") => '()))))
 
   (behavior "skips generation and complains if the 'transactions' function is missing."
     (when-mocking
@@ -32,7 +32,7 @@
       (ns-resolve _ _) => nil
 
       (assertions
-        (schema/all-migrations "my.crap") => '())))
+        (schema/all-migrations* "my.crap") => '())))
 
   (behavior "skips the migration and reports an error if the 'transactions' function fails to return a list of lists"
     (when-mocking
@@ -40,7 +40,7 @@
       (util/load-namespaces "my.crap") => [:..migration1..]
       (ns-resolve :..migration1.. 'transactions) => (fn [] [{}])
       (assertions
-        (schema/all-migrations "my.crap") => '())))
+        (schema/all-migrations* "my.crap") => '())))
 
   (behavior "skips the migration named 'template'"
     (when-mocking
@@ -48,7 +48,7 @@
       (util/load-namespaces "my.crap") => [:..migration1..]
 
       (assertions
-        (schema/all-migrations "my.crap") => '()))))
+        (schema/all-migrations* "my.crap") => '()))))
 
 (specification "check-migration-conformity"
   (provided "when database conforms to migration"
@@ -75,7 +75,7 @@
 (specification "migration-status-all"
   (provided "when multiple databases conform to migrations"
     (d/connect _) =2x=> nil
-    (schema/all-migrations _) =2x=> nil
+    (schema/all-migrations* _) =2x=> nil
     (schema/check-migration-conformity _ _ _) =1x=> #{}
     (schema/check-migration-conformity _ _ _) =1x=> #{}
     (assertions
@@ -84,7 +84,7 @@
 
   (provided "when multiple databases do not conform"
     (d/connect _) =2x=> nil
-    (schema/all-migrations _) =2x=> nil
+    (schema/all-migrations* _) =2x=> nil
     (schema/check-migration-conformity _ _ _) =1x=> #{:db1.migs/db1-20151106 :db1.migs/db1-20151107}
     (schema/check-migration-conformity _ _ _) =1x=> #{:db2.migs/db2-20151106 :db2.migs/db2-20151107}
     (assertions

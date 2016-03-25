@@ -156,7 +156,7 @@
 (defn contains-lists? [l]
   (every? sequential? l))
 
-(defn all-migrations [migration-namespace]
+(defn all-migrations* [migration-namespace]
   "Obtain all of the migrations from a given base namespace string (e.g.
   \"datahub.migrations\")"
   (let [migration-keyword
@@ -198,7 +198,12 @@
                   ; eliminate empty items
                   (filter seq)))]
       (into {} [mig]))))
-(def memoized-all-migrations (memoize all-migrations))
+(def ^{:doc ""}
+  all-migrations
+  (if (#{"0" "false"} (System/getenv "UNTANGLED_DATOMIC_CACHE_MIGRATIONS"))
+    all-migrations*
+    (do (timbre/warn "Caching migrations")
+        (memoize all-migrations*))))
 
 (defn migrate
   "
@@ -215,7 +220,7 @@
   (migrate conn \"datahub.migrations\")
   "
   [dbconnection nspace]
-  (let [migrations (memoized-all-migrations nspace)]
+  (let [migrations (all-migrations nspace)]
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm (keys migration)]
@@ -249,7 +254,7 @@
     (fn [acc config]
       (let [{:keys [url schema]} config
             connection (datomic/connect url)
-            migrations (all-migrations schema)]
+            migrations (all-migrations* schema)]
         (into acc (check-migration-conformity connection migrations verbose))))
     #{} (vals db-configs)))
 

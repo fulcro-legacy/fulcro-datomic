@@ -157,8 +157,8 @@
   (every? sequential? l))
 
 (defn all-migrations* [migration-namespace]
-  "Obtain all of the migrations from a given base namespace string (e.g.
-  \"datahub.migrations\")"
+  "Obtain all of the migrations from a given base namespace string (e.g. \"datahub.migrations\").
+  This is not memoized/cached, perfomance will suffer, see all-migrations for the 'faster' version"
   (let [migration-keyword
         #(keyword (str/replace (n/namespace-name %) #"^(.+)\.([^.]+)$" "$1/$2"))
 
@@ -198,11 +198,14 @@
                   ; eliminate empty items
                   (filter seq)))]
       (into {} [mig]))))
-(def ^{:doc ""}
+(def ^{:doc "memoized (cached) version of all-migrations*
+            beware as changes to your migrations will not be reflected unless:
+            - you've set the env var below to disable caching
+            - you've restarted your repl/test-refresh/jvm/etc"}
   all-migrations
   (if (#{"0" "false"} (System/getenv "UNTANGLED_DATOMIC_CACHE_MIGRATIONS"))
     all-migrations*
-    (do (timbre/warn "Caching migrations")
+    (do (timbre/warn "Caching migrations, set env var UNTANGLED_DATOMIC_CACHE_MIGRATIONS to 0 or false to disable.")
         (memoize all-migrations*))))
 
 (defn migrate

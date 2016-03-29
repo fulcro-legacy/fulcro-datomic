@@ -39,12 +39,14 @@
   "Build a database component. If you specify a config, then none will be injected. If you do not, then this component
   will expect there to be a `:config` component to inject."
   ([database-key config]
-   (comp/map->DatabaseComponent {:db-name database-key
-                                 :config  {:value {:datomic config}}}))
+   (component/using
+     (comp/map->DatabaseComponent {:db-name database-key
+                                   :config  {:value {:datomic config}}})
+     [:logger]))
   ([database-key]
    (component/using
      (comp/map->DatabaseComponent {:db-name database-key})
-     [:config])))
+     [:config :logger])))
 
 (defn main-handler [config args]
   (let [[opts args banner]

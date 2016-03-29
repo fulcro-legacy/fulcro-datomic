@@ -156,9 +156,9 @@
 (defn contains-lists? [l]
   (every? sequential? l))
 
-(defn all-migrations [migration-namespace]
-  "Obtain all of the migrations from a given base namespace string (e.g.
-  \"datahub.migrations\")"
+(defn all-migrations* [migration-namespace]
+  "Obtain all of the migrations from a given base namespace string (e.g. \"datahub.migrations\").
+  This is not memoized/cached, perfomance will suffer, see all-migrations for the 'faster' version"
   (let [migration-keyword
         #(keyword (str/replace (n/namespace-name %) #"^(.+)\.([^.]+)$" "$1/$2"))
 
@@ -198,7 +198,15 @@
                   ; eliminate empty items
                   (filter seq)))]
       (into {} [mig]))))
-(def memoized-all-migrations (memoize all-migrations))
+(def ^{:doc "memoized (cached) version of all-migrations*
+            beware as changes to your migrations will not be reflected unless:
+            - you've set the env var below to disable caching
+            - you've restarted your repl/test-refresh/jvm/etc"}
+  all-migrations
+  (if (#{"0" "false"} (System/getenv "UNTANGLED_DATOMIC_CACHE_MIGRATIONS"))
+    all-migrations*
+    (do (timbre/warn "Caching migrations, set env var UNTANGLED_DATOMIC_CACHE_MIGRATIONS to 0 or false to disable.")
+        (memoize all-migrations*))))
 
 (defn migrate
   "
@@ -215,7 +223,7 @@
   (migrate conn \"datahub.migrations\")
   "
   [dbconnection nspace]
-  (let [migrations (memoized-all-migrations nspace)]
+  (let [migrations (all-migrations nspace)]
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm (keys migration)]
@@ -249,7 +257,7 @@
     (fn [acc config]
       (let [{:keys [url schema]} config
             connection (datomic/connect url)
-            migrations (all-migrations schema)]
+            migrations (all-migrations* schema)]
         (into acc (check-migration-conformity connection migrations verbose))))
     #{} (vals db-configs)))
 

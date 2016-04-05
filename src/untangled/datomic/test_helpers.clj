@@ -89,7 +89,7 @@
     (map? item) (let [new-id-mappings (atom id-map)]
                   (walk/prewalk #(if-let [id (and (map? %) (keyword? (:db/id %)) (is-tempid-keyword? (:db/id %)) (:db/id %))]
                                   (let [tempid (d/tempid :db.part/user)]
-                                    (assert (not (contains? @new-id-mappings id)) (str "Entity uses a duplicate ID: " (meta item)))
+                                    (assert (not (contains? @new-id-mappings id)) (str "Entity uses a duplicate ID: " id (meta item)))
                                     (swap! new-id-mappings assoc id tempid)
                                     (assoc % :db/id tempid))
                                   %) item)

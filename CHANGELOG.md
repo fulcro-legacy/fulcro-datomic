@@ -2,3 +2,7 @@
 ---------------------
 - Updated readme
 - Updated dependencies
+
+0.4.8
+-----
+- Added dummy logger to avoid crashes

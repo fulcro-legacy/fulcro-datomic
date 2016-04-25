@@ -141,6 +141,7 @@
            db2 (let [seeder (test-helpers/make-seeder {:db  [{:db/id :datomic.id/thing}]
                                                        :db2 [{:db/id :datomic.id/thing}]})
                      system (component/system-map
+                              :logger {}
                               :db db
                               :db2 db2
                               :seeder seeder)
@@ -157,6 +158,7 @@
            db2 (let [seeder (test-helpers/make-seeder {:db  [{:db/id :datomic.id/thing}]
                                                        :db2 [{:db/id :datomic.id/thing2}]})
                      system (component/system-map
+                              :logger {}
                               :db db
                               :db2 db2
                               :seeder seeder)

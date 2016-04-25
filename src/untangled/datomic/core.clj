@@ -5,22 +5,40 @@
             [untangled.datomic.impl.components :as comp]
             [untangled.datomic.impl.util :as util]
             [taoensso.timbre :as timbre]
-            [untangled.datomic.schema :as schema]))
+            [untangled.datomic.schema :as schema]
+            [untangled.datomic.protocols :as p]))
 
 (defn retract-datomic-entity [connection entity-id] @(d/transact connection [[:db.fn/retractEntity entity-id]]))
 
-(defn resolve-ids [new-db omids->tempids tempids->realids]
+(defn resolve-ids [new-db client-tempids->server-tempids server-tempids->realids]
   (reduce
-    (fn [acc [cid dtmpid]]
-      (assoc acc cid (d/resolve-tempid new-db tempids->realids dtmpid)))
+    (fn [acc [cid dtmpid]] (assoc acc cid (d/resolve-tempid new-db server-tempids->realids dtmpid)))
     {}
-    omids->tempids))
+    client-tempids->server-tempids))
 
-(defn replace-ref-types [dbc refs m]
+(defn query
+  "Runs a datomic query against the database component. Same basic structure as datomic.api/q, AND
+  you may use the `datomic.id` namespaced keywords used to seed the component as the values of bound variables
+  within `in` clauses. Only supports one bound database value for `in` clauses.
+
+  e.g. (query
+          '[:find ?a :in $ ?id :where [?e :author/address ?a]
+                                      [?e :author/name ?id]]
+          database-component
+          :datomic.id/author-name)"
+  [query database-comp & bound-variables]
+  (let [db (d/db (p/get-connection database-comp))
+        seeded-id-map (:seed-result (p/get-info database-comp))
+        real-ids (map #(get seeded-id-map % %) bound-variables)]
+
+    (apply d/q query db real-ids)))
+
+(defn replace-ref-types
   "@dbc   the database to query
    @refs  a set of keywords that ref datomic entities, which you want to access directly
           (rather than retrieving the entity id)
    @m     map returned from datomic pull containing the entity IDs you want to deref"
+  [dbc refs m]
   (clojure.walk/postwalk
     (fn [arg]
       (if (and (coll? arg) (refs (first arg)))

@@ -95,5 +95,16 @@
       (datomic.api/connect anything) => true
       (datomic.api/delete-database anything) => true
       (assertions
-        (-> (start-system) .stop :db :connection) => nil))))
+        (-> (start-system) .stop :db :connection) => nil)))
+
+  (behavior "propagates any errors up to the consumer"
+    (when-mocking
+      (datomic.api/create-database anything) => true
+      (datomic.api/connect anything) => true
+      (let [test-seed-fn (fn [this-db] (throw (ex-info "ACK" {})))]
+        (assertions
+          (try (start-system (make-config {:seed-function test-seed-fn}))
+               (catch Exception e
+                 (throw (.getCause e))))
+          =throws=> (clojure.lang.ExceptionInfo #"ACK"))))))
 

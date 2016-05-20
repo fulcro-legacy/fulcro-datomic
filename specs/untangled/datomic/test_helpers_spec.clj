@@ -127,10 +127,10 @@
           mock-seed-fn (fn [conn] (test-helpers/link-and-load-seed-data conn []))]
       (test-helpers/with-db-fixture
         db (assertions
-             (:level taoensso.timbre/*config*) => :info)
+             (:level taoensso.timbre/*config*) => :warn)
         :seed-fn mock-seed-fn
         :migrations "resources.datomic-schema.validation-schema"
-        :log-level :info)
+        :log-level :warn)
       (assertions
         (:level taoensso.timbre/*config*) => old-log-level))))
 

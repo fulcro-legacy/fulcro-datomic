@@ -1,10 +1,10 @@
-(defproject navis/untangled-datomic "0.4.8"
+(defproject navis/untangled-datomic "0.4.9"
   :description "Datomic plugin for Untangled webapps"
   :url "http://www.github.com/untangled-web"
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [datomic-helpers "1.0.0"]
                  [com.datomic/datomic-free "0.9.5344" :scope "provided" :exclusions [joda-time]]
                  [org.clojure/math.combinatorics "0.1.1"]

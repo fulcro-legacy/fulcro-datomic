@@ -53,13 +53,11 @@
         (info "Running migrations on" db-name)
         (load-datomic-toolbox-helpers url)
         (run-migrations migration-ns db-name c))
-      (try
-        (cond-> (assoc this :connection c)
-          (and created seed-function) (assoc :seed-result
-                                             (do
-                                               (info "Seeding database" db-name)
-                                               (seed-function c))))
-        (catch Exception e (fatal e)))))
+      (cond-> (assoc this :connection c)
+        (and created seed-function)
+        (assoc :seed-result
+               (do (info "Seeding database" db-name)
+                   (seed-function c))))))
   (stop [this]
     (info "Stopping database" db-name)
     (let [{:keys [drop-on-stop url]} (.get-db-config this)]

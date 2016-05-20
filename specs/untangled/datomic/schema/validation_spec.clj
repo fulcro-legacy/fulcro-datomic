@@ -285,7 +285,7 @@
   (behavior "reverts to a pessimistic application in the transactor if optimistic update fails"
     (let [tx-data [[:db/add 1 :blah 2]]
           optimistic-version 1
-          tx-result-1 (future (throw ex-info "Bad Version"))
+          tx-result-1 (future (throw (ex-info "Bad Version" {})))
           tx-result-2 (future [])]
       (when-mocking
         (datomic/db conn) => "db"

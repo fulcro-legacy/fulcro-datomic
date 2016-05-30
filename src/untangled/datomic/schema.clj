@@ -11,18 +11,20 @@
     [clojure.string :as str]))
 
 ;; The main schema functions
+(defn fields* [fielddefs]
+  (let [extract-type-and-options
+        (fn [a [nm tp & opts]]
+          (let [pure-opts (set (filter (some-fn vector? keyword? string?) opts))
+                custom-opts (first (filter map? opts))
+                options (cond-> [tp pure-opts]
+                          custom-opts (conj custom-opts))]
+            (assoc a (name nm) options)))]
+    {:fields (reduce extract-type-and-options {} fielddefs)}))
+
 (defmacro fields
   "Simply a helper for converting (fields [name :string :indexed]) into {:fields {\"name\" [:string #{:indexed}]}}"
   [& fielddefs]
-  (let [extract-type-and-options (fn [a [nm tp & opts]]
-                                   (let [
-                                         pure-opts (set (filter #(or (vector? %) (keyword? %) (string? %)) opts))
-                                         custom-opts (first (filter #(map? %) opts))
-                                         options (if (nil? custom-opts) [tp pure-opts] [tp pure-opts custom-opts])
-                                         ]
-                                     (assoc a (name nm) options)))
-        defs (reduce extract-type-and-options {} fielddefs)]
-    `{:fields ~defs}))
+  (fields* fielddefs))
 
 (defn schema*
   "Simply merges several maps into a single schema definition and add one or two helper properties"
@@ -108,6 +110,16 @@
   ([schema] (generate-schema schema {:gen-all? true}))
   ([schema {:keys [gen-all? index-all?] :as opts}]
    (reduce (partial schema->datomic opts) [] schema)))
+
+(defn map->schema [sch]
+  (generate-schema
+    (reduce (fn [acc [sch-ns fields]]
+              (->> fields
+                (mapv (fn [[fname fval]] (cons fname fval)))
+                (fields*)
+                (schema* (name sch-ns))
+                (conj acc)))
+            [] sch)))
 
 (defmacro with-require
   "A macro to be used with dbfn in order to add 'require'

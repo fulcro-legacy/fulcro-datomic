@@ -6,8 +6,6 @@
             [untangled.datomic.schema :as schema]
             [untangled.datomic.protocols :refer [Database]]))
 
-
-
 (defn- run-migrations [migration-ns kw conn]
   (info "Applying migrations " migration-ns "to" kw "database.")
   (schema/migrate conn migration-ns))
@@ -16,6 +14,13 @@
   (dt/configure! {:uri db-url :partition :db.part/user})
   (dt/install-migration-schema)
   (dt/run-migrations "datomic-toolbox-schemas"))
+
+(defn migrate [c db-name url migration-ns]
+  (info "Ensuring core schema is defined")
+  (schema/run-core-schema c)
+  (info "Running migrations on" db-name)
+  (load-datomic-toolbox-helpers url)
+  (run-migrations migration-ns db-name c))
 
 (defrecord DatabaseComponent [db-name connection seed-result config]
   Database
@@ -47,13 +52,9 @@
                   seed-function migration-ns]} (.get-db-config this)
           created (datomic/create-database url)
           c (datomic/connect url)]
-      (when migrate-on-start
-        (info "Ensuring core schema is defined")
-        (schema/run-core-schema c)
-        (info "Running migrations on" db-name)
-        (load-datomic-toolbox-helpers url)
-        (run-migrations migration-ns db-name c))
       (cond-> (assoc this :connection c)
+        migrate-on-start
+        (assoc :schema (migrate c db-name url migration-ns))
         (and created seed-function)
         (assoc :seed-result
                (do (info "Seeding database" db-name)

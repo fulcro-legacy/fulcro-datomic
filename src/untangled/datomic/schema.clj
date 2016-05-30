@@ -247,7 +247,9 @@
       (if (conformity/conforms-to? (datomic/db dbconnection) nm)
         (timbre/info "Verified that database conforms to migration" nm)
         (timbre/error "Database does NOT conform to migration" nm)))
-    (timbre/debug "Schema is now" (dump-schema (datomic/db dbconnection)))))
+    (let [schema-dump (into [] (dump-schema (datomic/db dbconnection)))]
+      (timbre/trace "Schema is now" schema-dump)
+      schema-dump)))
 
 (defn check-migration-conformity [connection migrations verbose]
   (reduce (fn [nonconforming-migrations mig]

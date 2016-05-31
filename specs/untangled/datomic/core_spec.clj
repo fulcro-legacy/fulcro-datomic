@@ -6,7 +6,14 @@
             [io.rkn.conformity :as c]
             [untangled-spec.core :refer [when-mocking specification provided behavior assertions]]
             [untangled.datomic.fixtures.migration-handling-mock-data :as md]
-            [untangled.datomic.impl.util :as util]))
+            [untangled.datomic.impl.util :as util]
+            [clojure.test :as t]
+            [taoensso.timbre :as timbre]))
+
+(t/use-fixtures
+  :once #(timbre/with-merged-config
+           {:ns-blacklist ["untangled.datomic.core"]}
+           (%)))
 
 (specification "The query function"
   (test/with-db-fixture fixture

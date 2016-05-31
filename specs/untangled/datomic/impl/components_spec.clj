@@ -1,13 +1,19 @@
 (ns untangled.datomic.impl.components-spec
   (:require [com.stuartsierra.component :as component]
-            [clojure.test :refer :all]
+            [clojure.test :as t]
             [untangled.datomic.core :refer [build-database]]
             [untangled-spec.core :refer
              [specification assertions when-mocking component behavior]]
             [untangled.datomic.schema :as schema]
             [untangled.datomic.impl.components :as comp]
             [datomic-toolbox.core :as dt]
-            [datomic.api :as d]))
+            [datomic.api :as d]
+            [taoensso.timbre :as timbre]))
+
+(t/use-fixtures
+  :once #(timbre/with-merged-config
+           {:ns-blacklist ["untangled.datomic.impl.components"]}
+           (%)))
 
 (def default-db-name :db1)
 (def default-db-url "db1-url")

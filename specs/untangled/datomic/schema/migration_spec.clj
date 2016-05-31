@@ -6,8 +6,14 @@
     [untangled.datomic.test-helpers :refer [with-db-fixture]]
     [untangled.datomic.impl.util :as util]
     [untangled.datomic.fixtures.migration-handling-mock-data :as md]
-    [clojure.test :refer [is]]
+    [clojure.test :as t]
+    [taoensso.timbre :as timbre]
     [io.rkn.conformity :as c]))
+
+(t/use-fixtures
+  :once #(timbre/with-merged-config
+           {:ns-blacklist ["untangled.datomic.schema"]}
+           (%)))
 
 (specification "all-migrations*"
   (behavior "INTEGRATION - finds migrations that are in the correct package and ignores the template"

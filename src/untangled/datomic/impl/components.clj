@@ -22,6 +22,17 @@
   (load-datomic-toolbox-helpers url)
   (run-migrations migration-ns db-name c))
 
+(defn arities [f]
+  (if (var? f)
+    (map count (:arglists (meta f)))
+    (map #(-> % .getParameterTypes count)
+         (-> f class .getDeclaredMethods ))))
+
+(defn seed-database [c f db-cfg]
+  (case (apply max (arities f))
+    1 (f c)
+    2 (f c (dissoc db-cfg :seed-function))))
+
 (defrecord DatabaseComponent [db-name connection seed-result config]
   Database
   (get-connection [this] (:connection this))
@@ -48,8 +59,8 @@
 
   component/Lifecycle
   (start [this]
-    (let [{:keys [migrate-on-start url
-                  seed-function migration-ns]} (.get-db-config this)
+    (let [db-cfg (.get-db-config this)
+          {:keys [migrate-on-start url seed-function migration-ns]} db-cfg
           created (datomic/create-database url)
           c (datomic/connect url)]
       (cond-> (assoc this :connection c)
@@ -58,7 +69,7 @@
         (and created seed-function)
         (assoc :seed-result
                (do (info "Seeding database" db-name)
-                   (seed-function c))))))
+                   (seed-database c seed-function db-cfg))))))
   (stop [this]
     (info "Stopping database" db-name)
     (let [{:keys [drop-on-stop url]} (.get-db-config this)]

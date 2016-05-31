@@ -29,8 +29,9 @@
       [:datomic :auto-migrate] true)))
 
 (def seed-result :a-tree!)
+(def default-seed-function (fn [_] seed-result))
 (def seed-config
-  (make-config {:seed-function (fn [_] seed-result)}))
+  (make-config {:seed-function default-seed-function}))
 
 (defn start-system
   ([] (start-system default-config))
@@ -96,7 +97,23 @@
       (d/create-database default-db-url) => true
       (d/connect default-db-url) => true
       (assertions
-        (-> (start-system seed-config) :db :seed-result) => seed-result)))
+        (-> (start-system seed-config) :db :seed-result) => seed-result))
+    (behavior "if seed-functions can take 2 arguments, they are also passed their db config"
+      (when-mocking
+        (d/create-database default-db-url) => true
+        (d/connect default-db-url) => :fake/conn
+        (let [cfg (make-config {:seed-function
+                                (fn [c db-cfg]
+                                  (assertions
+                                    c => :fake/conn
+                                    db-cfg => {:url "db1-url",
+                                               :migration-ns "schema.default",
+                                               :migrate-on-start false})
+                                  :ok)})]
+          (assertions
+            (-> (start-system cfg) :db :seed-result) => :ok
+            "can also take a var instead of a fn"
+            (comp/arities #'start-system) => [0 1])))))
 
   (behavior ".stop stops the component"
     (when-mocking

@@ -1,4 +1,4 @@
-(defproject navis/untangled-datomic "0.4.9"
+(defproject navis/untangled-datomic "0.4.10"
   :description "Datomic plugin for Untangled webapps"
   :url "http://www.github.com/untangled-web"
   :license {:name "MIT"
@@ -14,7 +14,7 @@
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
                  [com.taoensso/timbre "4.3.1"]
-                 [navis/untangled-spec "0.3.5" :scope "test" :exclusions [io.aviso/pretty]]
+                 [navis/untangled-spec "0.3.6" :scope "test" :exclusions [io.aviso/pretty]]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]
                  [datomic-schema-grapher "0.0.1"]]
 

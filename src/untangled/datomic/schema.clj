@@ -240,7 +240,7 @@
     (doseq [migration migrations
             nm (keys migration)]
       (timbre/info "Conforming " nm)
-      (timbre/debug migration)
+      (timbre/trace migration)
       (try
         (conformity/ensure-conforms dbconnection migration)
         (catch Exception e (taoensso.timbre/fatal "migration failed" e)))

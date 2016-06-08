@@ -965,8 +965,7 @@
     )
   )
 
-;; TODO: Add documentation on usage.
-(defdbfn refcas [db eid rel old-value new-value] :db.part/user
+(defn refcas* [db eid rel old-value new-value retract-component?]
   (let [entity (datomic.api/entity db eid)
         relation (datomic.api/entity db rel)
         ->set (fn [maybe-set]
@@ -986,14 +985,26 @@
                  "coll? " (instance? java.util.Collection old-value) "; "
                  "nil? " (nil? old-value) "; "
                  "type: " (type old-value)))))
+
     (concat
       (for [val existing-values
             :when (not (contains? new-values val))]
         ; FIXME: Why is this necessary?
-        (if (:db/isComponent relation)
+        (if (and retract-component? (:db/isComponent relation))
+          ;; TODO: decide if using retractEntity or retract
           [:db.fn/retractEntity val]
           [:db/retract eid rel val]))
       (for [val new-values
             :when (not (contains? old-values val))]
         {:db/id eid
          rel    val}))))
+
+;; Used for compare-and-set on ref fields. If an id in `old-value` is not present in `new-value`, it will
+;; be removed from the provided entity's attribute AND it will be retracted from the database.
+(defdbfn refcas [db eid rel old-value new-value] :db.part/user
+  (untangled.datomic.schema/refcas* db eid rel old-value new-value true))
+
+;; Same as refcas above, but will NOT retract ids removed in new-value from the entire databse. Instead, it will
+;; just retract the reference on the provided field.
+(defdbfn refcas-remove [db eid rel old-value new-value] :db.part/user
+  (untangled.datomic.schema/refcas* db eid rel old-value new-value false))

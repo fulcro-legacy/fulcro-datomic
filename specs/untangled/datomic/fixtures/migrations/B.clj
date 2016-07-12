@@ -1,3 +1,7 @@
-(ns untangled.datomic.fixtures.migrations.B)
+(ns untangled.datomic.fixtures.migrations.B
+  (:require [untangled.datomic.schema :as s]))
 
-(defn transactions [] [[{:item 2}]])
+(defn migrate-data [dummy-conn] (reset! dummy-conn true))
+
+(defn transactions []
+  (s/migrate-with migrate-data [[{:item 2}]]))

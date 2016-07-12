@@ -119,7 +119,7 @@
                 (fields*)
                 (schema* (name sch-ns))
                 (conj acc)))
-            [] sch)))
+      [] sch)))
 
 (defmacro with-require
   "A macro to be used with dbfn in order to add 'require'
@@ -168,6 +168,12 @@
 (defn contains-lists? [l]
   (every? sequential? l))
 
+(defn migrate-with
+  "Use in a migration file to designate a function of one argument (the db connection) to be called AFTER the successful
+  database migration defined by `tx`."
+  [data-fn tx]
+  (with-meta tx {:migrate-data data-fn}))
+
 (defn all-migrations* [migration-namespace]
   "Obtain all of the migrations from a given base namespace string (e.g. \"datahub.migrations\").
   This is not memoized/cached, perfomance will suffer, see all-migrations for the 'faster' version"
@@ -193,7 +199,8 @@
         (fn [nspace]
           (if-let [txn (transactions nspace)]
             (if (contains-lists? txn)
-              (vector (migration-keyword nspace) {:txes txn})
+              (let [data-fn (meta txn)]
+                (vector (migration-keyword nspace) (merge {:txes txn} data-fn)))
               (do
                 (timbre/fatal "Transaction function failed to return a list of transactions!" nspace)
                 []))
@@ -214,7 +221,7 @@
             beware as changes to your migrations will not be reflected unless:
             - you've set the env var below to disable caching
             - you've restarted your repl/test-refresh/jvm/etc"}
-  all-migrations
+all-migrations
   (if (#{"0" "false"} (System/getenv "UNTANGLED_DATOMIC_CACHE_MIGRATIONS"))
     all-migrations*
     (do (timbre/warn "Caching migrations, set env var UNTANGLED_DATOMIC_CACHE_MIGRATIONS to 0 or false to disable.")
@@ -243,6 +250,8 @@
       (timbre/trace migration)
       (try
         (conformity/ensure-conforms dbconnection migration)
+        (when-let [data-fn (get-in migration [nm :migrate-data])]
+          (data-fn dbconnection))
         (catch Exception e (taoensso.timbre/fatal "migration failed" e)))
       (if (conformity/conforms-to? (datomic/db dbconnection) nm)
         (timbre/info "Verified that database conforms to migration" nm)

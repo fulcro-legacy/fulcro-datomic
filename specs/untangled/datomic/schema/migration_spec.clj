@@ -12,15 +12,19 @@
 
 (t/use-fixtures
   :once #(timbre/with-merged-config
-           {:ns-blacklist ["untangled.datomic.schema"]}
-           (%)))
+          {:ns-blacklist ["untangled.datomic.schema"]}
+          (%)))
 
 (specification "all-migrations*"
   (behavior "INTEGRATION - finds migrations that are in the correct package and ignores the template"
-    (assertions
-      (schema/all-migrations* "untangled.datomic.fixtures.migrations")
-      => '({:untangled.datomic.fixtures.migrations/A {:txes [[{:item 1}]]}}
-           {:untangled.datomic.fixtures.migrations/B {:txes [[{:item 2}]]}})))
+    (let [result (schema/all-migrations* "untangled.datomic.fixtures.migrations")
+          migA (first result)
+          migB (second result)]
+      (assertions
+        migA => {:untangled.datomic.fixtures.migrations/A {:txes [[{:item 1}]]}}
+        (keys migB) => [:untangled.datomic.fixtures.migrations/B]
+        (get-in migB [:untangled.datomic.fixtures.migrations/B :txes]) => [[{:item 2}]]
+        (get-in migB [:untangled.datomic.fixtures.migrations/B :migrate-data]) =fn=> fn?)))
 
   (behavior "does not find migrations that are in other packages"
     (let [mig1 "some.migration1"
@@ -99,6 +103,19 @@
                                                                  :db2.migs/db2-20151107
                                                                  :db1.migs/db1-20151106
                                                                  :db1.migs/db1-20151107})))
+
+(specification "migrate"
+  (provided "when provided with data migration functions"
+    (c/ensure-conforms _ _) => nil
+    (c/conforms-to? _ _) => true
+    (schema/dump-schema _) => nil
+    (d/db _) => nil
+
+    (let [migrate-called (atom false)]
+      (schema/migrate migrate-called "untangled.datomic.fixtures.migrations")
+      (assertions
+        "runs the data migration upon successful schema migration."
+        @migrate-called => true))))
 
 (specification "migrate-all"
   (provided "when given a configuration with multiple databases"

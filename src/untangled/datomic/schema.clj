@@ -246,16 +246,18 @@ all-migrations
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm (keys migration)]
-      (timbre/info "Conforming " nm)
-      (timbre/trace migration)
-      (try
-        (conformity/ensure-conforms dbconnection migration)
-        (when-let [data-fn (get-in migration [nm :migrate-data])]
-          (data-fn dbconnection))
-        (catch Exception e (taoensso.timbre/fatal "migration failed" e)))
       (if (conformity/conforms-to? (datomic/db dbconnection) nm)
-        (timbre/info "Verified that database conforms to migration" nm)
-        (timbre/error "Database does NOT conform to migration" nm)))
+        (timbre/info nm "has already been applied to the database.")
+        (try
+          (timbre/info "Conforming " nm)
+          (timbre/trace migration)
+          (conformity/ensure-conforms dbconnection migration)
+          (when-let [data-fn (get-in migration [nm :migrate-data])]
+            (data-fn dbconnection))
+          (if (conformity/conforms-to? (datomic/db dbconnection) nm)
+            (timbre/info "Verified that database conforms to migration" nm)
+            (timbre/error "Migration NOT successfully applied: " nm))
+          (catch Exception e (timbre/fatal "migration failed" e)))))
     (let [schema-dump (into [] (dump-schema (datomic/db dbconnection)))]
       (timbre/trace "Schema is now" schema-dump)
       schema-dump)))

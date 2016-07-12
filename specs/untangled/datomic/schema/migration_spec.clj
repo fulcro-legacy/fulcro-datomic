@@ -107,7 +107,10 @@
 (specification "migrate"
   (provided "when provided with data migration functions"
     (c/ensure-conforms _ _) => nil
-    (c/conforms-to? _ _) => true
+    (c/conforms-to? _ _) =1x=> false
+    (c/conforms-to? _ _) =1x=> true
+    (c/conforms-to? _ _) =1x=> false
+    (c/conforms-to? _ _) =1x=> true
     (schema/dump-schema _) => nil
     (d/db _) => nil
 

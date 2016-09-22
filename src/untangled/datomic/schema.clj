@@ -119,7 +119,7 @@
                 (fields*)
                 (schema* (name sch-ns))
                 (conj acc)))
-            [] sch)))
+      [] sch)))
 
 (defmacro with-require
   "A macro to be used with dbfn in order to add 'require'
@@ -168,6 +168,12 @@
 (defn contains-lists? [l]
   (every? sequential? l))
 
+(defn migrate-with
+  "Use in a migration file to designate a function of one argument (the db connection) to be called AFTER the successful
+  database migration defined by `tx`."
+  [data-fn tx]
+  (with-meta tx {:migrate-data data-fn}))
+
 (defn all-migrations* [migration-namespace]
   "Obtain all of the migrations from a given base namespace string (e.g. \"datahub.migrations\").
   This is not memoized/cached, perfomance will suffer, see all-migrations for the 'faster' version"
@@ -193,7 +199,8 @@
         (fn [nspace]
           (if-let [txn (transactions nspace)]
             (if (contains-lists? txn)
-              (vector (migration-keyword nspace) {:txes txn})
+              (let [data-fn (meta txn)]
+                (vector (migration-keyword nspace) (merge {:txes txn} data-fn)))
               (do
                 (timbre/fatal "Transaction function failed to return a list of transactions!" nspace)
                 []))
@@ -214,7 +221,7 @@
             beware as changes to your migrations will not be reflected unless:
             - you've set the env var below to disable caching
             - you've restarted your repl/test-refresh/jvm/etc"}
-  all-migrations
+all-migrations
   (if (#{"0" "false"} (System/getenv "UNTANGLED_DATOMIC_CACHE_MIGRATIONS"))
     all-migrations*
     (do (timbre/warn "Caching migrations, set env var UNTANGLED_DATOMIC_CACHE_MIGRATIONS to 0 or false to disable.")
@@ -239,14 +246,18 @@
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm (keys migration)]
-      (timbre/info "Conforming " nm)
-      (timbre/trace migration)
-      (try
-        (conformity/ensure-conforms dbconnection migration)
-        (catch Exception e (taoensso.timbre/fatal "migration failed" e)))
       (if (conformity/conforms-to? (datomic/db dbconnection) nm)
-        (timbre/info "Verified that database conforms to migration" nm)
-        (timbre/error "Database does NOT conform to migration" nm)))
+        (timbre/info nm "has already been applied to the database.")
+        (try
+          (timbre/info "Conforming " nm)
+          (timbre/trace migration)
+          (conformity/ensure-conforms dbconnection migration)
+          (when-let [data-fn (get-in migration [nm :migrate-data])]
+            (data-fn dbconnection))
+          (if (conformity/conforms-to? (datomic/db dbconnection) nm)
+            (timbre/info "Verified that database conforms to migration" nm)
+            (timbre/error "Migration NOT successfully applied: " nm))
+          (catch Exception e (timbre/fatal "migration failed" e)))))
     (let [schema-dump (into [] (dump-schema (datomic/db dbconnection)))]
       (timbre/trace "Schema is now" schema-dump)
       schema-dump)))
@@ -965,8 +976,7 @@
     )
   )
 
-;; TODO: Add documentation on usage.
-(defdbfn refcas [db eid rel old-value new-value] :db.part/user
+(defn refcas* [db eid rel old-value new-value retract-component?]
   (let [entity (datomic.api/entity db eid)
         relation (datomic.api/entity db rel)
         ->set (fn [maybe-set]
@@ -986,14 +996,26 @@
                  "coll? " (instance? java.util.Collection old-value) "; "
                  "nil? " (nil? old-value) "; "
                  "type: " (type old-value)))))
+
     (concat
       (for [val existing-values
             :when (not (contains? new-values val))]
         ; FIXME: Why is this necessary?
-        (if (:db/isComponent relation)
+        (if (and retract-component? (:db/isComponent relation))
+          ;; TODO: decide if using retractEntity or retract
           [:db.fn/retractEntity val]
           [:db/retract eid rel val]))
       (for [val new-values
             :when (not (contains? old-values val))]
         {:db/id eid
          rel    val}))))
+
+;; Used for compare-and-set on ref fields. If an id in `old-value` is not present in `new-value`, it will
+;; be removed from the provided entity's attribute AND it will be retracted from the database.
+(defdbfn refcas [db eid rel old-value new-value] :db.part/user
+  (untangled.datomic.schema/refcas* db eid rel old-value new-value true))
+
+;; Same as refcas above, but will NOT retract ids removed in new-value from the entire databse. Instead, it will
+;; just retract the reference on the provided field.
+(defdbfn refcas-remove [db eid rel old-value new-value] :db.part/user
+  (untangled.datomic.schema/refcas* db eid rel old-value new-value false))

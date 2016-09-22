@@ -1,4 +1,4 @@
-(defproject navis/untangled-datomic "0.4.10"
+(defproject navis/untangled-datomic "0.4.11"
   :description "Datomic plugin for Untangled webapps"
   :url "http://www.github.com/untangled-web"
   :license {:name "MIT"

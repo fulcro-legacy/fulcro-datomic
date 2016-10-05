@@ -1,0 +1,31 @@
+= Untangled Datomic
+:source-highlighter: coderay
+:source-language: clojure
+:toc:
+:toc-placement: preamble
+:sectlinks:
+:sectanchors:
+:sectnums:
+
+A library that provides injectable datomic database components for Untangled web servers. Includes
+migration support, and extended schema validation.
+
+image:https://img.shields.io/clojars/v/navis/untangled-datomic.svg[link=https://clojars.org/navis/untangled-datomic]
+
+Release: image:https://api.travis-ci.org/untangled-web/untangled-datomic.svg?branch=master[link=https://github.com/untangled-web/untangled-datomic/tree/master]
+Snapshot: image:https://api.travis-ci.org/untangled-web/untangled-datomic.svg?branch=develop[link=https://github.com/untangled-web/untangled-datomic/tree/develop]
+
+ifdef::env-github[]
+== Read our docs
+endif::[]
+include::docs/index.adoc[]
+
+## Usage
+
+The Untangled TodoMVC full-stack implementation demonstrates the basics of this library. More documentation
+coming soon.
+
+## License
+
+The MIT License (MIT)
+Copyright © 2016 NAVIS

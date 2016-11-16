@@ -18,7 +18,7 @@ Snapshot: image:https://api.travis-ci.org/untangled-web/untangled-datomic.svg?br
 == Learn more
 - about link:docs/index.adoc#untangled-datomic-docs[Untangled Datomic]
 - about link:http://untangled-web.github.io/untangled/index.html[Untangled] & checkout the link:http://untangled-web.github.io/untangled/index.html[Documentation Reference]
-- interactively with the link:http://untangled-web.github.io/untangled/tutorial.html[Untangled Tutorial]
+- interactively with the link:http://untangled-web.github.io/untangled/guide.html[Untangled Tutorial]
 
 ## Usage
 

@@ -10,10 +10,10 @@
 A library that provides injectable datomic database components for Untangled web servers. Includes
 migration support, and extended schema validation.
 
-image:https://img.shields.io/clojars/v/navis/untangled-datomic.svg[link=https://clojars.org/navis/untangled-datomic]
+image:https://img.shields.io/clojars/v/awkay/untangled-datomic.svg[link=https://clojars.org/awkay/untangled-datomic]
 
-Release: image:https://api.travis-ci.org/untangled-web/untangled-datomic.svg?branch=master[link=https://github.com/untangled-web/untangled-datomic/tree/master]
-Snapshot: image:https://api.travis-ci.org/untangled-web/untangled-datomic.svg?branch=develop[link=https://github.com/untangled-web/untangled-datomic/tree/develop]
+Release: image:https://api.travis-ci.org/awkay/untangled-datomic.svg?branch=master[link=https://github.com/awkay/untangled-datomic/tree/master]
+Snapshot: image:https://api.travis-ci.org/awkay/untangled-datomic.svg?branch=develop[link=https://github.com/awkay/untangled-datomic/tree/develop]
 
 == Learn more
 - about link:docs/index.adoc#untangled-datomic-docs[Untangled Datomic]

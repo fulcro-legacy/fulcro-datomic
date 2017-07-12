@@ -14,10 +14,10 @@
 (defn fields* [fielddefs]
   (let [extract-type-and-options
         (fn [a [nm tp & opts]]
-          (let [pure-opts (set (filter (some-fn vector? keyword? string?) opts))
+          (let [pure-opts   (set (filter (some-fn vector? keyword? string?) opts))
                 custom-opts (first (filter map? opts))
-                options (cond-> [tp pure-opts]
-                          custom-opts (conj custom-opts))]
+                options     (cond-> [tp pure-opts]
+                              custom-opts (conj custom-opts))]
             (assoc a (name nm) options)))]
     {:fields (reduce extract-type-and-options {} fielddefs)}))
 
@@ -62,29 +62,29 @@
    :unique-identity    :db.unique/identity})
 
 (defn field->datomic [basename part {:keys [gen-all? index-all?]} acc [fieldname [type opts custom]]]
-  (let [uniq (first (remove nil? (map #(unique-mapping %) opts)))
+  (let [uniq   (first (remove nil? (map #(unique-mapping %) opts)))
         dbtype (keyword "db.type" (if (= type :enum) "ref" (name type)))
         result
-        (cond->
-          {:db.install/_attribute :db.part/db
-           :db/id                 (datomic/tempid :db.part/db)
-           :db/ident              (keyword basename fieldname)
-           :db/valueType          dbtype
-           :db/cardinality        (if (opts :many) :db.cardinality/many :db.cardinality/one)}
-          (or index-all? gen-all? (opts :indexed))
-          (assoc :db/index (boolean (or index-all? (opts :indexed))))
+               (cond->
+                 {:db.install/_attribute :db.part/db
+                  :db/id                 (datomic/tempid :db.part/db)
+                  :db/ident              (keyword basename fieldname)
+                  :db/valueType          dbtype
+                  :db/cardinality        (if (opts :many) :db.cardinality/many :db.cardinality/one)}
+                 (or index-all? gen-all? (opts :indexed))
+                 (assoc :db/index (boolean (or index-all? (opts :indexed))))
 
-          (or gen-all? (seq (filter string? opts)))
-          (assoc :db/doc (or (first (filter string? opts)) ""))
-          (or gen-all? (opts :fulltext)) (assoc :db/fulltext (boolean (opts :fulltext)))
-          (or gen-all? (opts :component)) (assoc :db/isComponent (boolean (opts :component)))
-          (or gen-all? (opts :nohistory)) (assoc :db/noHistory (boolean (opts :nohistory)))
+                 (or gen-all? (seq (filter string? opts)))
+                 (assoc :db/doc (or (first (filter string? opts)) ""))
+                 (or gen-all? (opts :fulltext)) (assoc :db/fulltext (boolean (opts :fulltext)))
+                 (or gen-all? (opts :component)) (assoc :db/isComponent (boolean (opts :component)))
+                 (or gen-all? (opts :nohistory)) (assoc :db/noHistory (boolean (opts :nohistory)))
 
-          (:references custom) (assoc :constraint/references (:references custom))
-          (:with-values custom) (assoc :constraint/with-values (:with-values custom))
-          (opts :definitive) (assoc :constraint/definitive (boolean (opts :definitive)))
-          (opts :unpublished) (assoc :constraint/unpublished (boolean (opts :unpublished)))
-          )]
+                 (:references custom) (assoc :constraint/references (:references custom))
+                 (:with-values custom) (assoc :constraint/with-values (:with-values custom))
+                 (opts :definitive) (assoc :constraint/definitive (boolean (opts :definitive)))
+                 (opts :unpublished) (assoc :constraint/unpublished (boolean (opts :unpublished)))
+                 )]
     (concat
       acc
       [(if uniq (assoc result :db/unique uniq) result)]
@@ -93,7 +93,7 @@
 (defn schema->datomic [opts acc schema]
   (if (or (:db/id schema) (vector? schema))
     (conj acc schema)                                       ;; This must be a raw schema definition
-    (let [key (:namespace schema)
+    (let [key  (:namespace schema)
           part (or (:part schema) :db.part/user)]
       (reduce (partial field->datomic key part opts) acc (:fields schema)))))
 
@@ -182,7 +182,7 @@
 
         migration?
         #(and (.startsWith (n/namespace-name %) migration-namespace)
-          (not (.endsWith (n/namespace-name %) ".template")))
+           (not (.endsWith (n/namespace-name %) ".template")))
 
         migration-spaces
         (filter migration? (n/load-namespaces migration-namespace))
@@ -245,7 +245,7 @@ all-migrations
   (let [migrations (all-migrations nspace)]
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
-            nm (keys migration)]
+            nm        (keys migration)]
       (if (conformity/conforms-to? (datomic/db dbconnection) nm)
         (timbre/info nm "has already been applied to the database.")
         (try
@@ -303,13 +303,13 @@ all-migrations
                     "db.type"
                     "db.unique"
                     "fressian"}
-        idents (datomic/q '[:find [?ident ...]
-                            :in $ ?system-ns
-                            :where
-                            [_ :db/ident ?ident]
-                            [(namespace ?ident) ?ns]
-                            [((comp not contains?) ?system-ns ?ns)]]
-                 db system-ns)]
+        idents    (datomic/q '[:find [?ident ...]
+                               :in $ ?system-ns
+                               :where
+                               [_ :db/ident ?ident]
+                               [(namespace ?ident) ?ns]
+                               [((comp not contains?) ?system-ns ?ns)]]
+                    db system-ns)]
     (map #(datomic/touch (datomic/entity db %)) idents)))
 
 (defn dump-entity
@@ -343,70 +343,59 @@ all-migrations
 
   "
   [name doc foreign-attributes]
-  (let [name (keyword name)
-        refs (map (fn [v]
-                    [:db/ident v])
-               (set foreign-attributes))
+  (let [name  (keyword name)
+        refs  (map (fn [v]
+                     [:db/ident v])
+                (set foreign-attributes))
         basic {:db/id       (datomic/tempid :db.part/user)
                :entity/name name :entity/doc doc}
-        trx (if (empty? refs)
-              basic
-              (conj basic {:entity/foreign-attribute refs}))]
+        trx   (if (empty? refs)
+                basic
+                (conj basic {:entity/foreign-attribute refs}))]
     (list trx)))
 
 
 ;; defines the constraints schema and ensures that the database has these defined
 (defn ensure-constraints-conform [conn]
-  (let [schema (generate-schema
-                 [
-                  (schema constraint
-                    (fields
-                      [references :keyword]
-                      [with-values :keyword :many]
-                      [definitive :boolean]
-                      [unpublished :boolean]
-                      ))
-                  ;; Database function which will throw an exception if the given argument does not match the
-                  ;; current database's tranasction number (for optimistic concurrency control on validations)
-                  (dbfn ensure-version [db version] :db.part/user
-                    (if (not= version (datomic.api/basis-t db))
-                      (throw (ex-info "Transactor version of database does not match required version" {}))
-                      ))
-                  ;; Database function that does referential integrity checks within the transactor. Pass
-                  ;; the transaction data to this function.
-                  (with-require [[fulcro.datomic.schema :as v]]
-                    (dbfn constrained-transaction [db transaction] :db.part/user
-                      (let [result (datomic.api/with db transaction)]
-                        (fulcro.datomic.schema/validate-transaction result false)
-                        transaction
-                        )
-                      )
-                    )
-
-                  ])
+  (let [schema    (generate-schema
+                    [
+                     (schema constraint
+                       (fields
+                         [references :keyword]
+                         [with-values :keyword :many]
+                         [definitive :boolean]
+                         [unpublished :boolean]))
+                     ;; Database function which will throw an exception if the given argument does not match the
+                     ;; current database's tranasction number (for optimistic concurrency control on validations)
+                     (dbfn ensure-version [db version] :db.part/user
+                       (if (not= version (datomic.api/basis-t db))
+                         (throw (ex-info "Transactor version of database does not match required version" {}))))
+                     ;; Database function that does referential integrity checks within the transactor. Pass
+                     ;; the transaction data to this function.
+                     (with-require [[fulcro.datomic.schema :as v]]
+                       (dbfn constrained-transaction [db transaction] :db.part/user
+                         (let [result (datomic.api/with db transaction)]
+                           (fulcro.datomic.schema/validate-transaction result false)
+                           transaction)))])
         norms-map {:datahub/constraint-schema {:txes (vector schema)}}]
     (doseq []
       (conformity/ensure-conforms conn norms-map [:datahub/constraint-schema])
       (if (conformity/conforms-to? (datomic/db conn) :datahub/constraint-schema)
         (timbre/info "Verified that database conforms to constraints")
-        (timbre/error "Database does NOT conform to contstraints")
-        )
-      )
-    )
-  )
+        (timbre/error "Database does NOT conform to contstraints")))))
 
 
 ;; defines the constraints schema and ensures that the database has these defined
 (defn ensure-entities-conform [conn]
-  (let [schema (generate-schema
-                 [
-                  (schema entity
-                    (fields
-                      [name :keyword :unique-identity]
-                      [doc :string]
-                      [foreign-attribute :ref :many]
-                      ))
-                  ])
+  (let [schema    (generate-schema
+                    [
+                     (schema entity
+                       (fields
+                         [name :keyword :unique-identity]
+                         [doc :string]
+                         [foreign-attribute :ref :many]
+                         ))
+                     ])
         norms-map {:datahub/entity-schema {:txes (vector schema)}}]
     (doseq []
       (conformity/ensure-conforms conn norms-map [:datahub/entity-schema])
@@ -425,26 +414,26 @@ all-migrations
   )
 
 (defn- map-schema-results [acc attribute]
-  (let [entities (first acc)
-        definitives (second acc)
-        id (:db/ident attribute)
-        entityid (get-entity-from-attribute id)
-        values (cond-> {:db/valueType   (:db/valueType attribute)
-                        :db/cardinality (:db/cardinality attribute)
-                        }
-                 (:db/doc attribute) (assoc :db/doc (:db/doc attribute))
-                 (:db/entity-doc attribute) (assoc :db/entity-doc (:rest/entity-doc attribute))
-                 (:constraint/definitive attribute) (assoc :constraint/definitive (:constraint/definitive attribute))
-                 (:constraint/unpublished attribute) (assoc :constraint/unpublished (:constraint/unpublished attribute))
-                 (:constraint/references attribute) (assoc :constraint/references (:constraint/references attribute))
-                 (:db/fulltext attribute) (assoc :db/fulltext (:db/fulltext attribute))
-                 (:db/index attribute) (assoc :db/index (:db/index attribute))
-                 (:db/unique attribute) (assoc :db/unique (:db/unique attribute))
-                 (:db/isComponent attribute) (assoc :db/isComponent (:db/isComponent attribute))
-                 )
-        currvalues (if (contains? entities entityid) (:attributes (entityid entities)) {})
-        newvalues (merge {id values} currvalues)
-        entities-update (assoc entities entityid {:attributes newvalues})
+  (let [entities           (first acc)
+        definitives        (second acc)
+        id                 (:db/ident attribute)
+        entityid           (get-entity-from-attribute id)
+        values             (cond-> {:db/valueType   (:db/valueType attribute)
+                                    :db/cardinality (:db/cardinality attribute)
+                                    }
+                             (:db/doc attribute) (assoc :db/doc (:db/doc attribute))
+                             (:db/entity-doc attribute) (assoc :db/entity-doc (:rest/entity-doc attribute))
+                             (:constraint/definitive attribute) (assoc :constraint/definitive (:constraint/definitive attribute))
+                             (:constraint/unpublished attribute) (assoc :constraint/unpublished (:constraint/unpublished attribute))
+                             (:constraint/references attribute) (assoc :constraint/references (:constraint/references attribute))
+                             (:db/fulltext attribute) (assoc :db/fulltext (:db/fulltext attribute))
+                             (:db/index attribute) (assoc :db/index (:db/index attribute))
+                             (:db/unique attribute) (assoc :db/unique (:db/unique attribute))
+                             (:db/isComponent attribute) (assoc :db/isComponent (:db/isComponent attribute))
+                             )
+        currvalues         (if (contains? entities entityid) (:attributes (entityid entities)) {})
+        newvalues          (merge {id values} currvalues)
+        entities-update    (assoc entities entityid {:attributes newvalues})
         definitives-update (if (:constraint/definitive attribute) (conj definitives id) definitives)]
     [entities-update definitives-update]
     )
@@ -452,16 +441,16 @@ all-migrations
 
 ; given a datomic-database and options build the schema for each type of entities described in the options
 (defn- build-entity-representations [db]
-  (let [partition (datomic/q '[:find ?e . :where [?e :db/ident :db.part/db]] db)
-        schema (dump-schema db)
-        attributes (get (group-by #(datomic/part (:db/id %)) schema) partition)
+  (let [partition   (datomic/q '[:find ?e . :where [?e :db/ident :db.part/db]] db)
+        schema      (dump-schema db)
+        attributes  (get (group-by #(datomic/part (:db/id %)) schema) partition)
         map-results (reduce map-schema-results [{} []] attributes)]
     map-results
     )
   )
 
 (defn- resolve-foreign-key [keys all-entity-values]
-  (let [entity (first keys)
+  (let [entity    (first keys)
         attribute (second keys)]
     {attribute (-> all-entity-values entity :attributes attribute)}
     ))
@@ -470,10 +459,10 @@ all-migrations
 (defn- add-foreign-atrributes [entity-key all-entity-values foreign-attributes]
   (let [entity-values (entity-key all-entity-values)]
     (if (> (count foreign-attributes) 0)
-      (let [attributes (:attributes entity-values)
+      (let [attributes                  (:attributes entity-values)
             foreign-attributes-expanded (map (fn [key] [(get-entity-from-attribute key) key]) foreign-attributes)
-            extended-attributes (into {} (map #(resolve-foreign-key % all-entity-values) foreign-attributes-expanded))
-            combined-attributes (into {} [attributes extended-attributes])]
+            extended-attributes         (into {} (map #(resolve-foreign-key % all-entity-values) foreign-attributes-expanded))
+            combined-attributes         (into {} [attributes extended-attributes])]
         (assoc-in entity-values [:attributes] combined-attributes)
         )
       entity-values
@@ -482,7 +471,7 @@ all-migrations
   )
 
 (defn- append-foreign-attributes [db entities]
-  (let [attrs (datomic/q '[:find ?name ?attr :where [?e :entity/name ?name] [?e :entity/foreign-attribute ?f] [?f :db/ident ?attr]] db)
+  (let [attrs              (datomic/q '[:find ?name ?attr :where [?e :entity/name ?name] [?e :entity/foreign-attribute ?f] [?f :db/ident ?attr]] db)
         foreign-attributes (reduce (fn [acc a]
                                      (let [k (first a)
                                            c (if (nil? (k acc)) [] (k acc))
@@ -495,11 +484,11 @@ all-migrations
   )
 
 (defn- add-entity-extensions [db entities]
-  (let [docs (into {} (datomic/q '[:find ?name ?doc :where [?e :entity/doc ?doc] [?e :entity/name ?name]] db))
-        entities-with-docs (into {}
-                             (map (fn [e]
-                                    (let [doc (if (nil? ((first e) docs)) "" ((first e) docs))]
-                                      {(first e) (assoc (second e) :doc doc)})) entities))
+  (let [docs                       (into {} (datomic/q '[:find ?name ?doc :where [?e :entity/doc ?doc] [?e :entity/name ?name]] db))
+        entities-with-docs         (into {}
+                                     (map (fn [e]
+                                            (let [doc (if (nil? ((first e) docs)) "" ((first e) docs))]
+                                              {(first e) (assoc (second e) :doc doc)})) entities))
         entities-with-foreign-keys (append-foreign-attributes db entities-with-docs)]
     entities-with-foreign-keys
     )
@@ -528,10 +517,10 @@ all-migrations
                                                            :db/doc        \"Actor System\"
                                                            :constraint/definitive true}}
                                           :doc \"entity-doc\" }}}"
-  (let [datomic-database (datomic/db datomic-connection)
-        map-results (build-entity-representations datomic-database)
-        entites (apply dissoc (first map-results) [:constraint])
-        definitive (second map-results)
+  (let [datomic-database                  (datomic/db datomic-connection)
+        map-results                       (build-entity-representations datomic-database)
+        entites                           (apply dissoc (first map-results) [:constraint])
+        definitive                        (second map-results)
         entities-with-attached-extensions (add-entity-extensions datomic-database entites)]
     {:entities entities-with-attached-extensions :definitive definitive}
     )
@@ -606,7 +595,7 @@ all-migrations
   Thus, if you pass an entity, then this function is identical to (contains? entity-or-id attr)
   "
   [db entity-or-id attr]
-  (let [eid (or (:db/id entity-or-id) entity-or-id)
+  (let [eid    (or (:db/id entity-or-id) entity-or-id)
         result (datomic/q '[:find ?v .
                             :in $ ?e ?attr
                             :where [?e ?attr ?v]] db eid attr)]
@@ -623,12 +612,12 @@ all-migrations
   `kind`: the keyword or string `kind` of entity to check.
   "
   [db kind]
-  (set (datomic/q '[:find [?attr ...] :in $ ?kind
-                    :where
-                    [?e :entity/name ?kind]
-                    [?e :entity/foreign-attribute ?f]
-                    [?f :db/ident ?attr]] db kind))
-  )
+  (let [kind (if (keyword? kind) kind (keyword kind))]
+    (set (datomic/q '[:find [?attr ...] :in $ ?kind
+                     :where
+                     [?e :entity/name ?kind]
+                     [?e :entity/foreign-attribute ?f]
+                     [?f :db/ident ?attr]] db kind))))
 
 (defn core-attributes
   "
@@ -644,10 +633,8 @@ all-migrations
                     :in $ ?kind
                     :where
                     [_ :db/ident ?ident]
-                    [(namespace ?ident) ?kind]
-                    ]
-         db (name kind)))
-  )
+                    [(namespace ?ident) ?kind]]
+         db (name kind))))
 
 (defn all-attributes
   "
@@ -661,8 +648,7 @@ all-migrations
   foreign attributes.
   "
   [db kind]
-  (clojure.set/union (core-attributes db kind) (foreign-attributes db kind))
-  )
+  (clojure.set/union (core-attributes db kind) (foreign-attributes db kind)))
 
 (defn reference-constraint-for-attribute
   "For a given attribute, finds referential constraints (if a ref, and given).
@@ -687,10 +673,7 @@ all-migrations
     (some-> (if (:constraint/with-values result)
               (assoc result :constraint/with-values (set (:constraint/with-values result)))
               result)
-      (assoc :constraint/attribute attr)
-      )
-    )
-  )
+      (assoc :constraint/attribute attr))))
 
 (defn- ensure-entity
   "Ensure that the specified eid is loaded as an entity.
@@ -704,9 +687,7 @@ all-migrations
   [db eid]
   (if (instance? datomic.Entity eid)
     eid
-    (datomic/entity db eid)
-    )
-  )
+    (datomic/entity db eid)))
 
 (defn entity-exists?
   "
@@ -719,9 +700,7 @@ all-migrations
   "
   [conn-or-db entity-id]
   (let [db (if (= datomic.db.Db (type conn-or-db)) conn-or-db (datomic/db conn-or-db))]
-    (-> (datomic/q '[:find ?eid :in $ ?eid :where [?eid]] db entity-id) seq boolean)
-    )
-  )
+    (-> (datomic/q '[:find ?eid :in $ ?eid :where [?eid]] db entity-id) seq boolean)))
 
 (defn entities-in-tx
   "Returns a set of entity IDs that were modified in the given transaction.
@@ -731,16 +710,13 @@ all-migrations
   "
   ([tx-result] (entities-in-tx tx-result false))
   ([tx-result include-deleted]
-   (let [db (:db-after tx-result)
-         tx (:tx-data tx-result)
+   (let [db  (:db-after tx-result)
+         tx  (:tx-data tx-result)
          ids (set (->> tx (filter #(not= (.e %) (.tx %))) (map #(.e %))))
          ]
      (if include-deleted
        ids
-       (set (filter #(entity-exists? db %) ids))
-       )
-     ))
-  )
+       (set (filter #(entity-exists? db %) ids))))))
 
 (defn entities-that-reference
   "Finds all of the entities that reference the given entity.
@@ -751,9 +727,7 @@ all-migrations
   "
   [db e]
   (let [eid (if (instance? datomic.Entity e) (:db/id e) e)]
-    (datomic/q '[:find [?e ...] :in $ ?eid :where [?e _ ?eid]] db eid)
-    )
-  )
+    (datomic/q '[:find [?e ...] :in $ ?eid :where [?e _ ?eid]] db eid)))
 
 (defn as-set
   "A quick helper function that ensures the given collection (or singular item) is a set.
@@ -769,8 +743,7 @@ all-migrations
     (seq? v) (set v)
     (vector? v) (set v)
     (set? v) v
-    :else #{v}
-    ))
+    :else #{v}))
 
 (defn- is-reference-attribute-valid?
   "
@@ -783,27 +756,22 @@ all-migrations
   `constraint` - The database constraint to validate (as returned by reference-constraint-for-attribute)
   "
   [db entity constraint]
-  (let [entity (ensure-entity db entity)
-        source-attr (:constraint/attribute constraint)
-        targetids (as-set (source-attr entity))
-        target-attr (:constraint/references constraint)
-        allowed-values (:constraint/with-values constraint)
+  (let [entity           (ensure-entity db entity)
+        source-attr      (:constraint/attribute constraint)
+        targetids        (as-set (source-attr entity))
+        target-attr      (:constraint/references constraint)
+        allowed-values   (:constraint/with-values constraint)
         value-incorrect? (fn [entity attr allowed-values]
                            (let [value (attr entity)]
-                             (not ((set allowed-values) value))
-                             )
-                           )
-        error-msg (fn [msg entity attr target] {:source entity :reason msg :target-attr attr :target target})
-        ]
+                             (not ((set allowed-values) value))))
+        error-msg        (fn [msg entity attr target] {:source entity :reason msg :target-attr attr :target target})]
     (some #(cond
-            (not (entity-has-attribute? db % target-attr)) (error-msg "Target attribute is missing" entity target-attr %)
-            (and allowed-values
-              (value-incorrect? % target-attr allowed-values)) (error-msg "Target attribute has incorrect value"
-                                                                 entity target-attr %)
-            :else false)
-      targetids)
-    )
-  )
+             (not (entity-has-attribute? db % target-attr)) (error-msg "Target attribute is missing" entity target-attr %)
+             (and allowed-values
+               (value-incorrect? % target-attr allowed-values)) (error-msg "Target attribute has incorrect value"
+                                                                  entity target-attr %)
+             :else false)
+      targetids)))
 
 (defn invalid-references
   "
@@ -815,16 +783,14 @@ all-migrations
   `e` : The entity or entity ID to check
   "
   [db e]
-  (let [entity (ensure-entity db e)
-        attributes (keys entity)
-        get-constraint (fn [attr] (reference-constraint-for-attribute db attr))
-        drop-empty (partial filter identity)
+  (let [entity               (ensure-entity db e)
+        attributes           (keys entity)
+        get-constraint       (fn [attr] (reference-constraint-for-attribute db attr))
+        drop-empty           (partial filter identity)
         constraints-to-check (drop-empty (map get-constraint attributes))
-        check-attribute (partial is-reference-attribute-valid? db entity)
-        problems (drop-empty (map check-attribute constraints-to-check))
-        ]
-    (if (empty? problems) nil problems)
-    ))
+        check-attribute      (partial is-reference-attribute-valid? db entity)
+        problems             (drop-empty (map check-attribute constraints-to-check))]
+    (if (empty? problems) nil problems)))
 
 
 
@@ -842,8 +808,7 @@ all-migrations
                                    :where
                                    [?e :db/valueType _]
                                    [?e :constraint/definitive true]
-                                   ] db)))
-  )
+                                   ] db))))
 
 (defn entity-types
   "Given a db and an entity, this function determines all of the types that the given entity conforms to (by scanning
@@ -854,15 +819,13 @@ all-migrations
   `e` - The Entity (or ID) to check
   "
   [db e] []
-  (let [entity (ensure-entity db e)
-        attrs (set (keys entity))
-        type-markers (definitive-attributes db)
+  (let [entity        (ensure-entity db e)
+        attrs         (set (keys entity))
+        type-markers  (definitive-attributes db)
         type-keywords (set/intersection attrs type-markers)
-        type-of (comp keyword namespace)
+        type-of       (comp keyword namespace)
         ]
-    (->> type-keywords (map type-of) (set))
-    )
-  )
+    (->> type-keywords (map type-of) (set))))
 
 (defn invalid-attributes
   "Check the given entity against the given database schema and determine if it has attributes that are not allowed
@@ -876,14 +839,11 @@ all-migrations
   but are not allowed by the schema.
   "
   [db entity]
-  (let [types (entity-types db entity)
-        valid-attrs (set (mapcat (partial all-attributes db) types))
+  (let [types         (entity-types db entity)
+        valid-attrs   (set (mapcat (partial all-attributes db) types))
         current-attrs (set (keys entity))
-        invalid-attrs (set/difference current-attrs valid-attrs)
-        ]
-    (if (empty? invalid-attrs) nil invalid-attrs)
-    )
-  )
+        invalid-attrs (set/difference current-attrs valid-attrs)]
+    (if (empty? invalid-attrs) nil invalid-attrs)))
 
 (defn validate-transaction
   "
@@ -916,24 +876,17 @@ all-migrations
   "
   ([tx-result] (validate-transaction tx-result false))
   ([tx-result validate-attributes?]
-   (let [db (:db-after tx-result)
-         modified-entities (entities-in-tx tx-result)       ;; 1 & 2 all except removed
-         referencing-entities (fn [e] (entities-that-reference db e))
-         ]
+   (let [db                   (:db-after tx-result)
+         modified-entities    (entities-in-tx tx-result)    ;; 1 & 2 all except removed
+         referencing-entities (fn [e] (entities-that-reference db e))]
      (doseq [E modified-entities]
        (let [E (ensure-entity db E)]
          (if-let [bad-attrs (and validate-attributes? (invalid-attributes db E))]
            (throw (ex-info "Invalid Attributes" {:problems bad-attrs})))
          (if-let [bad-refs (invalid-references db E)] (throw (ex-info "Invalid References" {:problems bad-refs})))
          (doseq [R (referencing-entities E)]
-           (if-let [bad-refs (invalid-references db R)] (throw (ex-info "Invalid References" {:problems bad-refs})))
-           )
-         )
-       )
-     true
-     )
-    )
-  )
+           (if-let [bad-refs (invalid-references db R)] (throw (ex-info "Invalid References" {:problems bad-refs}))))))
+     true)))
 
 (defn vtransact
   "
@@ -950,14 +903,13 @@ all-migrations
   be applied.
   "
   [connection tx-data]
-  (let [db-ignored (datomic/db connection)
-        _ (datomic/with db-ignored tx-data)                 ;; this is a pre-caching attempt
-        db (datomic/db connection)
-        version (datomic/basis-t db)
-        optimistic-result (datomic/with db tx-data)         ; the 'real' attempt
-        version-enforced-tx (cons [:ensure-version version] tx-data)
-        reference-checked-tx [[:constrained-transaction tx-data]]
-        ]
+  (let [db-ignored           (datomic/db connection)
+        _                    (datomic/with db-ignored tx-data) ;; this is a pre-caching attempt
+        db                   (datomic/db connection)
+        version              (datomic/basis-t db)
+        optimistic-result    (datomic/with db tx-data)      ; the 'real' attempt
+        version-enforced-tx  (cons [:ensure-version version] tx-data)
+        reference-checked-tx [[:constrained-transaction tx-data]]]
     (try
       (validate-transaction optimistic-result true)         ;; throws if something is wrong
       (try
@@ -966,26 +918,19 @@ all-migrations
           result
           )
         (catch Exception e
-          (datomic/transact connection reference-checked-tx)
-          )
-        )
-      (catch Exception e
-        (future (throw e))
-        )
-      )
-    )
-  )
+          (datomic/transact connection reference-checked-tx)))
+      (catch Exception e (future (throw e))))))
 
 (defn refcas* [db eid rel old-value new-value retract-component?]
-  (let [entity (datomic.api/entity db eid)
-        relation (datomic.api/entity db rel)
-        ->set (fn [maybe-set]
-                (cond
-                  (instance? java.util.Collection maybe-set) (set maybe-set)
-                  (nil? maybe-set) #{}
-                  :else #{maybe-set}))
-        old-values (->set old-value)
-        new-values (->set new-value)
+  (let [entity          (datomic.api/entity db eid)
+        relation        (datomic.api/entity db rel)
+        ->set           (fn [maybe-set]
+                          (cond
+                            (instance? java.util.Collection maybe-set) (set maybe-set)
+                            (nil? maybe-set) #{}
+                            :else #{maybe-set}))
+        old-values      (->set old-value)
+        new-values      (->set new-value)
         existing-values (set (map :db/id (->set (get entity rel))))]
     (when-not (= old-values existing-values)
       (throw (java.util.ConcurrentModificationException.
@@ -996,7 +941,6 @@ all-migrations
                  "coll? " (instance? java.util.Collection old-value) "; "
                  "nil? " (nil? old-value) "; "
                  "type: " (type old-value)))))
-
     (concat
       (for [val existing-values
             :when (not (contains? new-values val))]

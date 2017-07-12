@@ -7,7 +7,7 @@
 :sectanchors:
 :sectnums:
 
-IMPORTANT: PORT IN PROGRESS. Not working just yet.
+IMPORTANT: PORT IN PROGRESS. There is a SNAPSHOT version, but YMMV.
 
 A library that provides injectable datomic database components for Fulcro web servers. Includes
 migration support, and extended schema validation.
@@ -16,10 +16,6 @@ image:https://img.shields.io/clojars/v/fulcrologic/fulcro-datomic.svg[link=https
 
 Release: image:https://api.travis-ci.org/fulcrologic/fulcro-datomic.svg?branch=master[link=https://github.com/fulcrologic/fulcro-datomic/tree/master]
 Snapshot: image:https://api.travis-ci.org/fulcrologic/fulcro-datomic.svg?branch=develop[link=https://github.com/fulcrologic/fulcro-datomic/tree/develop]
-
-NOTE: NAVIS is discontinuing its use of Datomic in favor of straight SQL for internal business reasons. This library
-will no longer be maintained. If you would like to become the maintainer of this library, please contact us via the
-issue #6 on this repository.
 
 == Learn more
 - about link:docs/index.adoc#fulcro-datomic-docs[Fulcro Datomic]

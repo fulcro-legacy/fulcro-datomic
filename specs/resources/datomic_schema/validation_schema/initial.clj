@@ -1,7 +1,7 @@
 (ns resources.datomic-schema.validation-schema.initial
   (:require
     datomic.api
-    [untangled.datomic.schema :as schema]
+    [fulcro.datomic.schema :as schema]
     )
   )
 

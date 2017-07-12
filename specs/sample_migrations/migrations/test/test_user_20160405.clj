@@ -1,5 +1,5 @@
 (ns sample-migrations.migrations.test.test-user-20160405
-  (:require [untangled.datomic.schema :as s]))
+  (:require [fulcro.datomic.schema :as s]))
 
 (defn transactions []
   [(s/generate-schema

@@ -1,7 +1,7 @@
 (ns seeddata.auth
   (:require [fulcro.datomic.test-helpers :as s]
             [datomic.api :as d])
-  (import java.util.UUID))
+  (:import java.util.UUID))
 
 (defn gen-realm [realmpk accountid accountname userids]
   (s/generate-entity {

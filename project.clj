@@ -1,4 +1,4 @@
-(defproject fulcrologic/fulcro-datomic "0.4.11"
+(defproject fulcrologic/fulcro-datomic "1.0.0-SNAPSHOT"
   :description "Datomic plugin for Fulcro webapps"
   :url "http://www.github.com/fulcro-web"
   :min-lein-version "2.7.0"

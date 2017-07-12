@@ -1,6 +1,6 @@
-(defproject awkay/untangled-datomic "0.4.11"
-  :description "Datomic plugin for Untangled webapps"
-  :url "http://www.github.com/untangled-web"
+(defproject fulcrologic/fulcro-datomic "0.4.11"
+  :description "Datomic plugin for Fulcro webapps"
+  :url "http://www.github.com/fulcro-web"
   :license {:name "MIT"
             :url  "https://opensource.org/licenses/MIT"}
 
@@ -14,13 +14,13 @@
                  [org.clojure/java.classpath "0.2.2"]
                  [io.rkn/conformity "0.3.4" :exclusions [com.datomic/datomic-free]]
                  [com.taoensso/timbre "4.3.1"]
-                 [navis/untangled-spec "0.3.6" :scope "test" :exclusions [io.aviso/pretty]]
+                 [fulcrologic/fulcro-spec "1.0.0-beta2" :scope "test" :exclusions [io.aviso/pretty]]
                  [democracyworks/datomic-toolbox "2.0.0" :exclusions [com.datomic/datomic-pro]]
                  [datomic-schema-grapher "0.0.1"]]
 
   :plugins [[com.jakemccrary/lein-test-refresh "0.14.0"]]
 
-  :test-refresh {:report       untangled-spec.reporters.terminal/untangled-report
+  :test-refresh {:report       fulcro-spec.reporters.terminal/fulcro-report
                  :with-repl    true
                  :changes-only true}
 

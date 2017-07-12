@@ -1,5 +1,5 @@
 (ns seeddata.auth
-  (:require [untangled.datomic.test-helpers :as s]
+  (:require [fulcro.datomic.test-helpers :as s]
             [datomic.api :as d])
   (import java.util.UUID))
 

@@ -1,5 +1,5 @@
 (ns sample-migrations.migrations.auth.users-20150609
-  (:require [untangled.datomic.schema :as s]
+  (:require [fulcro.datomic.schema :as s]
             [datomic.api :as d])
   )
 
@@ -112,12 +112,12 @@
       ]
      {:index-all? true}
      )
-   (s/entity-extensions :user "User represents and indidual who accesses the navis system and the associated software and property entitlements and authorization roles." [])
-   (s/entity-extensions :realm "Realm represents a navis clients and the associated users, properties, property groups, subscriptions and authorization roles." [])
+   (s/entity-extensions :user "User represents and indidual who accesses the fulcrologic system and the associated software and property entitlements and authorization roles." [])
+   (s/entity-extensions :realm "Realm represents a fulcrologic clients and the associated users, properties, property groups, subscriptions and authorization roles." [])
    (s/entity-extensions :subscription "Subscripton represents which application and application components that are allowed for a realm" [])
    (s/entity-extensions :component "Component represents a logically grouped set of applicaiton functions that can be exposed to applications and subscriptions" [])
-   (s/entity-extensions :application "Application represents an overall navis application that contains 1 or more components" [])
-   (s/entity-extensions :property-group "Property Group represents a logical group of properties for a navis client that contain 1 or more properties" [])
+   (s/entity-extensions :application "Application represents an overall fulcrologic application that contains 1 or more components" [])
+   (s/entity-extensions :property-group "Property Group represents a logical group of properties for a fulcrologic client that contain 1 or more properties" [])
    (s/entity-extensions :entitlement "An abstract representation of entitlement" [])
    (s/entity-extensions :software-entitlement "Entitlement represents an individual permision to a component, all components or application.
                                 Permissions of read/write and links to specific a specific property, application or coponent when required." [:entitlement/permission])

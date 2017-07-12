@@ -1,4 +1,4 @@
-= Untangled Datomic Docs
+= Fulcro Datomic Docs
 :source-highlighter: coderay
 :source-language: clojure
 :toc:
@@ -20,26 +20,26 @@ ifdef::env-github[]
 toc::[]
 endif::[]
 
-The Untangled Datomic library includes a few useful additions that make it easier to integrate one or more Datomic
+The Fulcro Datomic library includes a few useful additions that make it easier to integrate one or more Datomic
 databases as persistent storage. It includes:
 
-- A configurable database component for use with Untangled Server
+- A configurable database component for use with Fulcro Server
 - Schema and migration support (based on Yuppiechef Datomic Schema)
 - Experimental schema rule enforcement for additional referential integrity checks (experimental)
 
 == Injecting and configuring database(s)
 
-Untangled Datomic includes a database component that can be easily added to an Untangled Server. The steps
+Fulcro Datomic includes a database component that can be easily added to an Fulcro Server. The steps
 are quite simple:
 
 - Create a configuration (TODO: LINK TO configuration section)
-- Create a database using `untangled.datomic.core/build-database` and assign that database a name
+- Create a database using `fulcro.datomic.core/build-database` and assign that database a name
 - Inject the database into the parser (so you can access it for reads/mutations)
 - Pull the database from the environment when parsing a request
 
 === Database Configuration
 
-The component looks for the configuration to come from the Untangled Server's built-in configuration
+The component looks for the configuration to come from the Fulcro Server's built-in configuration
 component. You can configure as many databases as you need. The  key-path for a database's
 config is `[:datomic :dbs :NAME]`. For example, the TODO MVC implementation sets up a development
 mode in-memory Datomic database that will auto-migrate and auto-drop on stop/start. The keys
@@ -63,21 +63,21 @@ still chaning schema in incompatible ways.
 
 === Creating the database component
 
-Create a database component is as simple as `(untangled.datomic.core/build-database :NAME)`. The
+Create a database component is as simple as `(fulcro.datomic.core/build-database :NAME)`. The
 `:NAME` keyword must match the name used in the config. Typically you will embed this into
 your server build. You can see this in action in TODO MVC at
-https://github.com/untangled-web/untangled-todomvc/blob/master/src/server/todomvc/system.clj[initial setup:]
+https://github.com/fulcro-web/fulcro-todomvc/blob/master/src/server/todomvc/system.clj[initial setup:]
 
 [source]
 ----
 (:require
-  [untangled.server.core :as core]
-  [untangled.datomic.core :refer [build-database])
+  [fulcro.server.core :as core]
+  [fulcro.datomic.core :refer [build-database])
   [om.next.server :as om])
 
 (defn make-system []
   (let [config-path "/usr/local/etc/server.edn"]
-    (core/make-untangled-server
+    (core/make-fulcro-server
       :config-path config-path
       :parser (om/parser {:read my-api-read :mutate my-api-mutate})
       :parser-injections #{:todo-database}
@@ -99,7 +99,7 @@ Many samples exist in the code of TODO MVC. For example:
 [source]
 ----
 (:require
-  [untangled.datomic.protocols :as udb]
+  [fulcro.datomic.protocols :as udb]
   [datomic.api :as d])
 
 (defmethod apimutate 'todo/delete-item [{:keys [todo-database]} _ {:keys [id]}]
@@ -113,7 +113,7 @@ The database component API includes the following (protocol) methods:
 
 [source]
 ----
-(ns untangled.datomic.protocols)
+(ns fulcro.datomic.protocols)
 
 (defprotocol Database
   (get-connection [this] "Get a connection to this database" )
@@ -133,7 +133,7 @@ The goals of the schema migration system are:
 3. Ensure that migrations are applied once and only once.
 4. Easily track what changes have been made to the database over time.
 
-The schema support in Untangled Datomic is a fork of https://github.com/Yuppiechef/datomic-schema[Yuppiechef's Datomic Schema] with additions for experimental additional
+The schema support in Fulcro Datomic is a fork of https://github.com/Yuppiechef/datomic-schema[Yuppiechef's Datomic Schema] with additions for experimental additional
 schema enforcements. The <<Database Configuration>> section talks about the `:schema` key. The namespace you use there
 will be scanned for files that are *not* named `template.clj`. The migration system
 scans the names for an ISO date. We recommend naming them
@@ -165,10 +165,10 @@ your server but also allowing an admin to run your migrations from the CLI in a 
   (:require
     [com.stuartsierra.component :as component]
     [YOUR.SYSTEM :as sys]
-    [untangled.server.core :as c]
-    [untangled.server.impl.components.config :refer [load-config]]
-    [untangled.datomic.schema :as schema]
-    [untangled.datomic.core :as dc]
+    [fulcro.server.core :as c]
+    [fulcro.server.impl.components.config :refer [load-config]]
+    [fulcro.datomic.schema :as schema]
+    [fulcro.datomic.core :as dc]
     [taoensso.timbre :as timbre])
   (:gen-class))
 
@@ -187,7 +187,7 @@ your server but also allowing an admin to run your migrations from the CLI in a 
 (defn -main
   "Main entrypoint"
   [& args]
-  (let [system (c/make-untangled-server .....) ; your untangled server
+  (let [system (c/make-fulcro-server .....) ; your fulcro server
         stop (fn [] (component/stop system))
         cli-config (load-config production-config-component)
         db-config (:dbs cli-config)]
@@ -217,7 +217,7 @@ Now (assuming you have a config file in place) you should be able to:
 
 == Schema Extensions
 
-Untangled Datomic includes some additional schema support that is integrated into the database as metadata. This
+Fulcro Datomic includes some additional schema support that is integrated into the database as metadata. This
 information can be useful as simple documentation, and can even be validated with an included (experimental)
 function `vtransact` (for validated transact). You may wish to simply use `datomic-schema` directly instead, but
 these extensions are under experimental evaluation in our own work. It was impossible for us to integrate
@@ -228,7 +228,7 @@ A full sample schema looks like this in a migration file:
 [source]
 ----
 (ns sample-migrations.migrations.users-20150609
-  (:require [untangled.datomic.schema :as s]
+  (:require [fulcro.datomic.schema :as s]
             [datomic.api :as d]))
 
 (defn transactions

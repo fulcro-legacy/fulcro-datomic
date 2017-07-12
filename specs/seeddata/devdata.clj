@@ -1,7 +1,7 @@
 (ns seeddata.devdata
   (:require
     [seeddata.auth :as a]
-    [untangled.datomic.test-helpers :as s]
+    [fulcro.datomic.test-helpers :as s]
     [datomic.api :as d]
     )
   )

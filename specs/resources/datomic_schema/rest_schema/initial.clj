@@ -1,5 +1,5 @@
 (ns resources.datomic-schema.rest-schema.initial
-  (:require [untangled.datomic.schema :as schema]
+  (:require [fulcro.datomic.schema :as schema]
             [datomic.api :as d]))
 
 (defn transactions []

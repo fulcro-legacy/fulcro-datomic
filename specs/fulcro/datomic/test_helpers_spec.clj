@@ -149,8 +149,8 @@
                  (assertions
                    (get-in started-system [:seeder :seed-result])
                    => :disjoint))
-           :migrations "resources.datomic-schema.validation-schema")
-      :migrations "resources.datomic-schema.validation-schema"))
+           :db-key :a :migrations "resources.datomic-schema.validation-schema")
+      :db-key :b :migrations "resources.datomic-schema.validation-schema"))
 
   (behavior "otherwise it should return {:db-name {:tid :rid}}"
     (test-helpers/with-db-fixture
@@ -167,5 +167,5 @@
                    (get-in started-system [:seeder :seed-result])
                    => {:db {:datomic.id/thing nil}
                        :db2 {:datomic.id/thing2 nil}}))
-           :migrations "resources.datomic-schema.validation-schema")
-      :migrations "resources.datomic-schema.validation-schema")))
+           :db-key :a :migrations "resources.datomic-schema.validation-schema")
+      :db-key :b :migrations "resources.datomic-schema.validation-schema")))

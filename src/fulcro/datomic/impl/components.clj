@@ -26,7 +26,7 @@
   (if (var? f)
     (map count (:arglists (meta f)))
     (map #(-> % .getParameterTypes count)
-         (-> f class .getDeclaredMethods ))))
+      (-> f class .getDeclaredMethods))))
 
 (defn seed-database [c f db-cfg]
   (case (apply max (arities f))
@@ -37,7 +37,7 @@
   Database
   (get-connection [this] (:connection this))
   (get-db-config [this]
-    (let [config (-> this :config :value :datomic)
+    (let [config    (-> this :config :value :datomic)
           db-config (-> config :dbs db-name)]
       (assert (-> config :dbs)
         "Missing :dbs of app config.")
@@ -46,8 +46,7 @@
       (assert (:schema db-config)
         (str db-name " has no Schema in dbs of app config."))
       (-> db-config
-        (clojure.set/rename-keys {:schema    :migration-ns
-                                  :auto-drop :drop-on-stop})
+        (clojure.set/rename-keys {:schema :migration-ns})
         (assoc :migrate-on-start (boolean
                                    (or (:auto-migrate config)
                                      (:auto-migrate db-config)))))))
@@ -59,10 +58,12 @@
 
   component/Lifecycle
   (start [this]
-    (let [db-cfg (.get-db-config this)
-          {:keys [migrate-on-start url seed-function migration-ns]} db-cfg
+    (let [db-cfg  (.get-db-config this)
+          {:keys [migrate-on-start url auto-drop seed-function migration-ns]} db-cfg
+          _       (when auto-drop
+                    (try (datomic/delete-database url) (catch Throwable t)))
           created (datomic/create-database url)
-          c (datomic/connect url)]
+          c       (datomic/connect url)]
       (cond-> (assoc this :connection c)
         migrate-on-start
         (assoc :schema (migrate c db-name url migration-ns))
@@ -72,8 +73,4 @@
                    (seed-database c seed-function db-cfg))))))
   (stop [this]
     (info "Stopping database" db-name)
-    (let [{:keys [drop-on-stop url]} (.get-db-config this)]
-      (when drop-on-stop
-        (info "Deleting database" db-name url)
-        (datomic/delete-database url)))
     (assoc this :connection nil)))

@@ -13,7 +13,7 @@
                  [org.clojure/tools.namespace "0.3.0-alpha4"]
                  [org.clojure/tools.cli "0.3.5"]
                  [org.clojure/java.classpath "0.2.3"]
-                 [io.rkn/conformity "0.3.2" :exclusions [com.datomic/datomic-free]]
+                 [io.rkn/conformity "0.5.1" :exclusions [com.datomic/datomic-free]]
                  [com.taoensso/timbre "4.10.0"]
                  [commons-codec "1.10"]
                  [org.clojure/tools.reader "1.0.0"]

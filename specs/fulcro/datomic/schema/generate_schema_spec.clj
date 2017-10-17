@@ -28,12 +28,6 @@
       (-> schema first :db/cardinality) => :db.cardinality/one
       "db/doc"
       (-> schema first :db/doc) => "my doc"
-      "constraint/definitive"
-      (-> schema first :constraint/definitive) => true
-      "constraint/references"
-      (-> schema second :constraint/references) => :application/name
-      "constraint/unpublished"
-      (-> schema (nth 2) :constraint/unpublished) => true
       "fulltext"
       (-> schema first :db/fulltext) => false
       "db/noHistroy"

@@ -246,26 +246,28 @@ all-migrations
     (timbre/info "Running migrations for" nspace)
     (doseq [migration migrations
             nm        (keys migration)]
-      (if (conformity/conforms-to? (datomic/db dbconnection) nm)
-        (timbre/info nm "has already been applied to the database.")
-        (try
-          (timbre/info "Conforming " nm)
-          (timbre/trace migration)
-          (conformity/ensure-conforms dbconnection migration)
-          (when-let [data-fn (get-in migration [nm :migrate-data])]
-            (data-fn dbconnection))
-          (if (conformity/conforms-to? (datomic/db dbconnection) nm)
-            (timbre/info "Verified that database conforms to migration" nm)
-            (timbre/error "Migration NOT successfully applied: " nm))
-          (catch Exception e (timbre/fatal "migration failed" e)))))
+      (let [cnt (count (get migration nm))]
+        (if (conformity/conforms-to? (datomic/db dbconnection) nm cnt)
+          (timbre/info nm "has already been applied to the database.")
+          (try
+            (timbre/info "Conforming " nm)
+            (timbre/trace migration)
+            (conformity/ensure-conforms dbconnection migration)
+            (when-let [data-fn (get-in migration [nm :migrate-data])]
+              (data-fn dbconnection))
+            (if (conformity/conforms-to? (datomic/db dbconnection) nm cnt)
+              (timbre/info "Verified that database conforms to migration" nm)
+              (timbre/error "Migration NOT successfully applied: " nm))
+            (catch Exception e (timbre/fatal "migration failed" e))))))
     (let [schema-dump (into [] (dump-schema (datomic/db dbconnection)))]
       (timbre/trace "Schema is now" schema-dump)
       schema-dump)))
 
 (defn check-migration-conformity [connection migrations verbose]
   (reduce (fn [nonconforming-migrations mig]
-            (let [[migration] (keys mig)]
-              (if-not (conformity/conforms-to? (datomic/db connection) migration)
+            (let [[migration] (keys mig)
+                  cnt (count (get mig migration))]
+              (if-not (conformity/conforms-to? (datomic/db connection) migration cnt)
                 (conj nonconforming-migrations (if verbose mig migration))
                 nonconforming-migrations)))
     #{} migrations))
@@ -358,8 +360,7 @@ all-migrations
 ;; defines the constraints schema and ensures that the database has these defined
 (defn ensure-constraints-conform [conn]
   (let [schema    (generate-schema
-                    [
-                     (schema constraint
+                    [(schema constraint
                        (fields
                          [references :keyword]
                          [with-values :keyword :many]
@@ -380,7 +381,7 @@ all-migrations
         norms-map {:datahub/constraint-schema {:txes (vector schema)}}]
     (doseq []
       (conformity/ensure-conforms conn norms-map [:datahub/constraint-schema])
-      (if (conformity/conforms-to? (datomic/db conn) :datahub/constraint-schema)
+      (if (conformity/conforms-to? (datomic/db conn) :datahub/constraint-schema 1)
         (timbre/info "Verified that database conforms to constraints")
         (timbre/error "Database does NOT conform to contstraints")))))
 
@@ -388,30 +389,19 @@ all-migrations
 ;; defines the constraints schema and ensures that the database has these defined
 (defn ensure-entities-conform [conn]
   (let [schema    (generate-schema
-                    [
-                     (schema entity
+                    [(schema entity
                        (fields
                          [name :keyword :unique-identity]
                          [doc :string]
-                         [foreign-attribute :ref :many]
-                         ))
-                     ])
+                         [foreign-attribute :ref :many]))])
         norms-map {:datahub/entity-schema {:txes (vector schema)}}]
     (doseq []
       (conformity/ensure-conforms conn norms-map [:datahub/entity-schema])
-      (if (conformity/conforms-to? (datomic/db conn) :datahub/entity-schema)
+      (if (conformity/conforms-to? (datomic/db conn) :datahub/entity-schema 1)
         (timbre/info "Verified that database conforms to entities")
-        (timbre/error "Database does NOT conform to entities")
-        )
-      )
-    )
-  )
+        (timbre/error "Database does NOT conform to entities")))))
 
-
-
-(defn- get-entity-from-attribute [key]
-  (keyword (subs (first (str/split (str key) #"/")) 1))
-  )
+(defn- get-entity-from-attribute [key] (keyword (subs (first (str/split (str key) #"/")) 1)))
 
 (defn- map-schema-results [acc attribute]
   (let [entities           (first acc)
@@ -435,9 +425,7 @@ all-migrations
         newvalues          (merge {id values} currvalues)
         entities-update    (assoc entities entityid {:attributes newvalues})
         definitives-update (if (:constraint/definitive attribute) (conj definitives id) definitives)]
-    [entities-update definitives-update]
-    )
-  )
+    [entities-update definitives-update]))
 
 ; given a datomic-database and options build the schema for each type of entities described in the options
 (defn- build-entity-representations [db]
@@ -614,10 +602,10 @@ all-migrations
   [db kind]
   (let [kind (if (keyword? kind) kind (keyword kind))]
     (set (datomic/q '[:find [?attr ...] :in $ ?kind
-                     :where
-                     [?e :entity/name ?kind]
-                     [?e :entity/foreign-attribute ?f]
-                     [?f :db/ident ?attr]] db kind))))
+                      :where
+                      [?e :entity/name ?kind]
+                      [?e :entity/foreign-attribute ?f]
+                      [?f :db/ident ?attr]] db kind))))
 
 (defn core-attributes
   "

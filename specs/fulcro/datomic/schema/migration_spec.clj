@@ -63,7 +63,7 @@
 (specification "check-migration-conformity"
   (provided "when database conforms to migration"
     (d/db _) => :db
-    (c/conforms-to? _ _) => true
+    (c/conforms-to? _ _ _) => true
     (assertions
       "retuns an empty set"
       (schema/check-migration-conformity :db md/migrations false) => #{}))
@@ -71,7 +71,7 @@
   (provided
     "when database does not conform to a migration"
     (d/db _) => :db
-    (c/conforms-to? _ _) => false
+    (c/conforms-to? _ _ _) => false
     (assertions
       "tersely reports nonconforming migrations"
       (schema/check-migration-conformity :db md/migrations false) => #{:survey.migrations/survey-20151106
@@ -107,10 +107,10 @@
 (specification "migrate"
   (provided "when provided with data migration functions"
     (c/ensure-conforms _ _) => nil
-    (c/conforms-to? _ _) =1x=> false
-    (c/conforms-to? _ _) =1x=> true
-    (c/conforms-to? _ _) =1x=> false
-    (c/conforms-to? _ _) =1x=> true
+    (c/conforms-to? _ _ _) =1x=> false
+    (c/conforms-to? _ _ _) =1x=> true
+    (c/conforms-to? _ _ _) =1x=> false
+    (c/conforms-to? _ _ _) =1x=> true
     (schema/dump-schema _) => nil
     (d/db _) => nil
 

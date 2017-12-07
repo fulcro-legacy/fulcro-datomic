@@ -7,9 +7,9 @@
 :sectanchors:
 :sectnums:
 
-IMPORTANT: This library contains largely obsolete features at this point. It was an early experiment in the history
-of the Untangled ecosystem, and since there was some adoption it was brought forward. In general, it is recommended
-that you hand-pick other libraries, such as conformity, for migrations and such.  
+NOTE: This library contains obsolete features, and is not high on the priority list for maintenance. It
+does contain some useful bits (component for integrating Datomic, and some testing helpers that are nice). The
+drop-add feature is broken (probably not even possible to do with Datomic's connection caching).
 
 A library that provides injectable datomic database components for Fulcro web servers. Includes
 migration support, and extended schema validation.

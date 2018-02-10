@@ -7,9 +7,17 @@
 :sectanchors:
 :sectnums:
 
-NOTE: This library contains obsolete features, and is not high on the priority list for maintenance. It
-does contain some useful bits (component for integrating Datomic, and some testing helpers that are nice). The
-drop-add feature is broken (probably not even possible to do with Datomic's connection caching).
+== DEPRECATED
+
+This library is no longer maintained. At the time of its inception there were limited solutions for the
+features it provided, but now there are reasonable alternatives for most of the internal features.
+
+- The experimental schema validation is much better implemented with Clojure Spec
+- Migrations are still a weak point in Datomic, but http://github.com/rkneufeld/conformity[Conformity] seems reasonable
+- https://github.com/Yuppiechef/datomic-schema[Datomic Schema] is a library that can make your schema look a little nicer in code.
+
+
+== Overview
 
 A library that provides injectable datomic database components for Fulcro web servers. Includes
 migration support, and extended schema validation.
